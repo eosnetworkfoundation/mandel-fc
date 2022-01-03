@@ -25,7 +25,7 @@ class datastream;
  *  actually packing it after doing a single allocation.
  */
 template<typename T>
-class datastream<T, std::enable_if_t<std::is_same_v<T, char*> || std::is_same_v<T, const char*>>>  {
+class datastream<T, std::enable_if_t<std::is_same_v<T, char*> || std::is_same_v<T, const char*> || std::is_same_v<T, const unsigned char*>>>  {
    public:
       datastream( T start, size_t s )
       :_start(start),_pos(start),_end(start+s){};
