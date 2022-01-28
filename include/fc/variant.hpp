@@ -41,8 +41,6 @@ namespace fc
    class time_point_sec;
    class microseconds;
    template<typename T> struct safe;
-   template<typename... Types>
-   class static_variant;
 
    struct blob { std::vector<char> data; };
 
@@ -80,8 +78,6 @@ namespace fc
    template<typename T> void to_variant( const std::unique_ptr<T>& s, fc::variant& v );
    template<typename T> void from_variant( const fc::variant& v, std::unique_ptr<T>& s );
 
-   template<typename... T> void to_variant( const static_variant<T...>& s, variant& v );
-   template<typename... T> void from_variant( const variant& v, static_variant<T...>& s );
    template<typename... T> void to_variant( const std::variant<T...>& s, fc::variant& v );
    template<typename... T> void from_variant( const fc::variant& v, std::variant<T...>& s );
 

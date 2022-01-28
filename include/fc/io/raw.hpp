@@ -782,21 +782,6 @@ namespace fc {
 
 
     template<typename Stream, typename... T>
-    void pack( Stream& s, const static_variant<T...>& sv )
-    {
-       fc::raw::pack( s, unsigned_int(sv.which()) );
-       sv.visit( pack_static_variant<Stream>(s) );
-    }
-
-    template<typename Stream, typename... T> void unpack( Stream& s, static_variant<T...>& sv )
-    {
-       unsigned_int w;
-       fc::raw::unpack( s, w );
-       sv.set_which(w.value);
-       sv.visit( unpack_static_variant<Stream>(s) );
-    }
-
-    template<typename Stream, typename... T>
     void pack( Stream& s, const std::variant<T...>& sv )
     {
        fc::raw::pack( s, unsigned_int(sv.index()) );
