@@ -3,7 +3,6 @@
 #include <fc/reflect/reflect.hpp>
 #include <fc/io/datastream.hpp>
 #include <fc/io/varint.hpp>
-#include <fc/optional.hpp>
 #include <fc/fwd.hpp>
 #include <fc/array.hpp>
 #include <fc/time.hpp>
@@ -266,20 +265,6 @@ namespace fc {
     void unpack( Stream& s, fc::fwd<T,S,Align>& v ) {
        fc::raw::unpack( *v );
     }
-
-    // optional
-    template<typename Stream, typename T>
-    void pack( Stream& s, const fc::optional<T>& v ) {
-      fc::raw::pack( s, bool(!!v) );
-      if( !!v ) fc::raw::pack( s, *v );
-    }
-
-    template<typename Stream, typename T>
-    void unpack( Stream& s, fc::optional<T>& v )
-    { try {
-      bool b; fc::raw::unpack( s, b );
-      if( b ) { v = T(); fc::raw::unpack( s, *v ); }
-    } FC_RETHROW_EXCEPTIONS( warn, "optional<${type}>", ("type",fc::get_typename<T>::name() ) ) }
 
     // optional
     template<typename Stream, typename T>
@@ -780,21 +765,6 @@ namespace fc {
       }
    };
 
-
-    template<typename Stream, typename... T>
-    void pack( Stream& s, const static_variant<T...>& sv )
-    {
-       fc::raw::pack( s, unsigned_int(sv.which()) );
-       sv.visit( pack_static_variant<Stream>(s) );
-    }
-
-    template<typename Stream, typename... T> void unpack( Stream& s, static_variant<T...>& sv )
-    {
-       unsigned_int w;
-       fc::raw::unpack( s, w );
-       sv.set_which(w.value);
-       sv.visit( unpack_static_variant<Stream>(s) );
-    }
 
     template<typename Stream, typename... T>
     void pack( Stream& s, const std::variant<T...>& sv )

@@ -10,7 +10,6 @@
 
 #include <string.h> // memset
 
-#include <fc/optional.hpp>
 #include <fc/string.hpp>
 #include <fc/time.hpp>
 #include <fc/container/deque_fwd.hpp>
@@ -41,8 +40,6 @@ namespace fc
    class time_point_sec;
    class microseconds;
    template<typename T> struct safe;
-   template<typename... Types>
-   class static_variant;
 
    struct blob { std::vector<char> data; };
 
@@ -80,8 +77,6 @@ namespace fc
    template<typename T> void to_variant( const std::unique_ptr<T>& s, fc::variant& v );
    template<typename T> void from_variant( const fc::variant& v, std::unique_ptr<T>& s );
 
-   template<typename... T> void to_variant( const static_variant<T...>& s, variant& v );
-   template<typename... T> void from_variant( const variant& v, static_variant<T...>& s );
    template<typename... T> void to_variant( const std::variant<T...>& s, fc::variant& v );
    template<typename... T> void from_variant( const fc::variant& v, std::variant<T...>& s );
 
@@ -351,13 +346,6 @@ namespace fc
         }
 
         template<typename T>
-        variant( const optional<T>& v )
-        {
-           memset( this, 0, sizeof(*this) );
-           if( v.valid() ) *this = variant(*v);
-        }
-
-        template<typename T>
         explicit variant( const std::optional<T>& v )
         {
            memset( this, 0, sizeof(*this) );
@@ -398,17 +386,6 @@ namespace fc
    void from_variant( const fc::variant& var,  int32_t& vo );
    /** @ingroup Serializable */
    void from_variant( const fc::variant& var,  uint32_t& vo );
-   /** @ingroup Serializable */
-   template<typename T>
-   void from_variant( const variant& var,  optional<T>& vo )
-   {
-      if( var.is_null() ) vo = optional<T>();
-      else
-      {
-          vo = T();
-          from_variant( var, *vo );
-      }
-   }
    /** @ingroup Serializable */
    template<typename T>
    void from_variant( const variant& var,  std::optional<T>& vo )

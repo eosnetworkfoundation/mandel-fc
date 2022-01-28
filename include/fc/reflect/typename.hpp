@@ -5,7 +5,6 @@
 #include <vector>
 
 #include <fc/string.hpp>
-#include <fc/optional.hpp>
 
 #include <fc/container/flat_fwd.hpp>
 #include <fc/container/deque_fwd.hpp>
@@ -56,13 +55,6 @@ namespace fc {
      {
         static std::string n = std::string("std::deque<") + get_typename<T>::name() + ">";
         return n.c_str();
-     }
-  };
-  template<typename T> struct get_typename<optional<T>>
-  {
-     static const char* name()  {
-         static std::string n = std::string("optional<") + get_typename<T>::name() + ">";
-         return n.c_str();
      }
   };
   template<typename T> struct get_typename<std::optional<T>>
