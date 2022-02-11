@@ -1,5 +1,6 @@
 #pragma once
 #include <fc/log/appender.hpp>
+#include <fc/reflect/reflect.hpp>
 
 namespace fc {
 
@@ -11,8 +12,12 @@ namespace fc {
    class dmlog_appender : public appender
    {
        public:
+            struct config
+            {
+               std::string file = "-";
+            };
             explicit dmlog_appender( const variant& args );
-            dmlog_appender();
+            explicit dmlog_appender( const std::optional<config>& args) ;
 
             virtual ~dmlog_appender();
             virtual void initialize( boost::asio::io_service& io_service ) override;
@@ -20,7 +25,10 @@ namespace fc {
             virtual void log( const log_message& m ) override;
 
        private:
+            dmlog_appender();
             class impl;
             std::unique_ptr<impl> my;
    };
 }
+
+FC_REFLECT(fc::dmlog_appender::config, (file))
