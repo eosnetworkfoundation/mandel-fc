@@ -1,6 +1,13 @@
 #define BOOST_TEST_MODULE tracked_storage
 #include <boost/test/included/unit_test.hpp>
 #include <fc/container/tracked_storage.hpp>
+#include <boost/multi_index_container.hpp>
+#include <boost/multi_index/member.hpp>
+#include <boost/multi_index/ordered_index.hpp>
+#include <boost/multi_index/hashed_index.hpp>
+#include <boost/multi_index/mem_fun.hpp>
+#include <boost/multi_index/global_fun.hpp>
+#include <boost/multi_index/composite_key.hpp>
 #include <sstream>
 
 using boost::multi_index_container;
@@ -73,18 +80,13 @@ BOOST_AUTO_TEST_CASE(simple_write_read_file_storage_test) {
    BOOST_CHECK_EQUAL( storage1_1.index().size(), 0);
 
    // fc::temp_directory td;
-   BOOST_CHECK(true);
-   // auto ss = tracked_storage1::write_to_file(td.path(), "temp.dat", 0x12345678, 5);
-   auto out = tracked_storage1::write_to_file(".", "temp.dat", 0x12345678, 5);
+   auto out = tracked_storage1::write_dat_file(".", "temp.dat", 0x12345678, 5);
    storage1_1.write(out);
    out.flush();
    out.close();
-   BOOST_CHECK(true);
 
-   auto content = tracked_storage1::read_from_file(".", "temp.dat", 0x12345678, 5, 5);
-   BOOST_CHECK(true);
+   auto content = tracked_storage1::read_dat_file(".", "temp.dat", 0x12345678, 5, 5);
    auto ds = content.create_datastream();
-   BOOST_CHECK(true);
    tracked_storage1 storage1_2;
    storage1_2.read(ds, 500);
    BOOST_CHECK_EQUAL( storage1_2.index().size(), 0);
@@ -102,12 +104,12 @@ BOOST_AUTO_TEST_CASE(single_write_read_file_storage_test) { try {
    BOOST_CHECK_EQUAL( storage1_1.size(), 6);
    BOOST_CHECK_EQUAL( storage1_1.index().size(), 1);
    fc::temp_directory td;
-   auto out = tracked_storage1::write_to_file(".", "temp.dat", 0x12345678, 5);
+   auto out = tracked_storage1::write_dat_file(".", "temp.dat", 0x12345678, 5);
    storage1_1.write(out);
    out.flush();
    out.close();
 
-   auto content = tracked_storage1::read_from_file(".", "temp.dat", 0x12345678, 5, 5);
+   auto content = tracked_storage1::read_dat_file(".", "temp.dat", 0x12345678, 5, 5);
    auto ds = content.create_datastream();
    tracked_storage1 storage1_2;
    storage1_2.read(ds, 500);
@@ -137,7 +139,7 @@ BOOST_AUTO_TEST_CASE(write_read_file_storage_test) {
    BOOST_CHECK_EQUAL( storage1_1.size(), 40);
    BOOST_CHECK_EQUAL( storage1_1.index().size(), 8);
 
-   auto out = tracked_storage1::write_to_file(".", "temp.dat", 0x12345678, 5);
+   auto out = tracked_storage1::write_dat_file(".", "temp.dat", 0x12345678, 5);
    storage1_1.write(out);
 
    using tracked_storage2 = tracked_storage<test_size2_container, test_size2, by_key>;
@@ -152,7 +154,7 @@ BOOST_AUTO_TEST_CASE(write_read_file_storage_test) {
    out.flush();
    out.close();
 
-   auto content = tracked_storage1::read_from_file(".", "temp.dat", 0x12345678, 5, 5);
+   auto content = tracked_storage1::read_dat_file(".", "temp.dat", 0x12345678, 5, 5);
    auto ds = content.create_datastream();
    tracked_storage1 storage1_2;
    storage1_2.read(ds, 500);
