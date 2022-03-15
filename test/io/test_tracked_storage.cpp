@@ -1,6 +1,7 @@
 #define BOOST_TEST_MODULE tracked_storage
 #include <boost/test/included/unit_test.hpp>
 #include <fc/container/tracked_storage.hpp>
+#include <fc/io/persistence_util.hpp>
 #include <boost/multi_index_container.hpp>
 #include <boost/multi_index/member.hpp>
 #include <boost/multi_index/ordered_index.hpp>
@@ -80,12 +81,12 @@ BOOST_AUTO_TEST_CASE(simple_write_read_file_storage_test) {
    BOOST_CHECK_EQUAL( storage1_1.index().size(), 0);
 
    // fc::temp_directory td;
-   auto out = fc::cfile::write_dat_file(".", "temp.dat", 0x12345678, 5);
+   auto out = fc::persistence_util::write_persistence_file(".", "temp.dat", 0x12345678, 5);
    storage1_1.write(out);
    out.flush();
    out.close();
 
-   auto content = fc::cfile::read_dat_file(".", "temp.dat", 0x12345678, 5, 5);
+   auto content = fc::persistence_util::read_persistence_file(".", "temp.dat", 0x12345678, 5, 5);
    auto ds = content.create_datastream();
    tracked_storage1 storage1_2;
    storage1_2.read(ds, 500);
@@ -104,12 +105,12 @@ BOOST_AUTO_TEST_CASE(single_write_read_file_storage_test) { try {
    BOOST_CHECK_EQUAL( storage1_1.size(), 6);
    BOOST_CHECK_EQUAL( storage1_1.index().size(), 1);
    fc::temp_directory td;
-   auto out = fc::cfile::write_dat_file(".", "temp.dat", 0x12345678, 5);
+   auto out = fc::persistence_util::write_persistence_file(".", "temp.dat", 0x12345678, 5);
    storage1_1.write(out);
    out.flush();
    out.close();
 
-   auto content = fc::cfile::read_dat_file(".", "temp.dat", 0x12345678, 5, 5);
+   auto content = fc::persistence_util::read_persistence_file(".", "temp.dat", 0x12345678, 5, 5);
    auto ds = content.create_datastream();
    tracked_storage1 storage1_2;
    storage1_2.read(ds, 500);
@@ -139,7 +140,7 @@ BOOST_AUTO_TEST_CASE(write_read_file_storage_test) {
    BOOST_CHECK_EQUAL( storage1_1.size(), 40);
    BOOST_CHECK_EQUAL( storage1_1.index().size(), 8);
 
-   auto out = fc::cfile::write_dat_file(".", "temp.dat", 0x12345678, 5);
+   auto out = fc::persistence_util::write_persistence_file(".", "temp.dat", 0x12345678, 5);
    storage1_1.write(out);
 
    using tracked_storage2 = tracked_storage<test_size2_container, test_size2, by_key>;
@@ -154,7 +155,7 @@ BOOST_AUTO_TEST_CASE(write_read_file_storage_test) {
    out.flush();
    out.close();
 
-   auto content = fc::cfile::read_dat_file(".", "temp.dat", 0x12345678, 5, 5);
+   auto content = fc::persistence_util::read_persistence_file(".", "temp.dat", 0x12345678, 5, 5);
    auto ds = content.create_datastream();
    tracked_storage1 storage1_2;
    storage1_2.read(ds, 500);
