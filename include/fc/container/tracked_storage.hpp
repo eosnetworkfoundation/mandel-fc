@@ -1,12 +1,4 @@
 #pragma once
-#include <boost/multi_index_container.hpp>
-#include <boost/multi_index/member.hpp>
-#include <boost/multi_index/ordered_index.hpp>
-#include <boost/multi_index/hashed_index.hpp>
-#include <boost/multi_index/mem_fun.hpp>
-#include <boost/multi_index/global_fun.hpp>
-#include <boost/multi_index/composite_key.hpp>
-#include <boost/filesystem.hpp>
 #include <fc/exception/exception.hpp>
 #include <fc/io/cfile.hpp>
 #include <fc/io/datastream.hpp>
@@ -15,7 +7,6 @@
 #include <fstream>
 
 namespace eosio::chain_apis {
-   namespace bfs = boost::filesystem;
 
    /**
     * @class tracked_storage

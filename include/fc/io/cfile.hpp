@@ -141,7 +141,7 @@ public:
    cfile_datastream create_datastream();
 
 
-   static cfile read_dat_file(const bfs::path& dir, const std::string& filename, const uint32_t magic_number,
+   static cfile read_dat_file(const fc::path& dir, const std::string& filename, const uint32_t magic_number,
       const uint32_t min_supported_version, const uint32_t max_supported_version) {
       if (!fc::is_directory(dir))
          fc::create_directories(dir);
@@ -178,7 +178,7 @@ public:
       return dat_content;
    }
 
-   static cfile write_dat_file(const bfs::path& dir, const std::string& filename, const uint32_t magic_number, const uint32_t current_version) {
+   static cfile write_dat_file(const fc::path& dir, const std::string& filename, const uint32_t magic_number, const uint32_t current_version) {
       if (!fc::is_directory(dir))
          fc::create_directories(dir);
 
