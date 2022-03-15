@@ -195,7 +195,7 @@ inline cfile_datastream cfile::create_datastream() {
    return cfile_datastream(*this);
 }
 
-cfile cfile::read_dat_file(const fc::path& dir, const std::string& filename, const uint32_t magic_number,
+inline cfile cfile::read_dat_file(const fc::path& dir, const std::string& filename, const uint32_t magic_number,
    const uint32_t min_supported_version, const uint32_t max_supported_version) {
    if (!fc::is_directory(dir))
       fc::create_directories(dir);
