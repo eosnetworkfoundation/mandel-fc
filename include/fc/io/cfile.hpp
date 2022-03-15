@@ -139,6 +139,7 @@ public:
    }
 
    cfile_datastream create_datastream();
+
 private:
    bool                  _open = false;
    fc::path              _file_path;
