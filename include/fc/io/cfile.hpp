@@ -223,11 +223,10 @@ inline cfile cfile::read_dat_file(const fc::path& dir, const std::string& filena
    cfile_stream dat_content;
    dat_content.set_file_path(dat_file);
    dat_content.open(cfile::update_rw_mode);
-   auto ds = dat_content;
 
    // validate totem
    uint32_t totem = 0;
-   fc::raw::unpack( ds, totem );
+   fc::raw::unpack( dat_content, totem );
    if( totem != magic_number) {
       FC_THROW_EXCEPTION(fc::parse_error_exception,
                          "File '${filename}' has unexpected magic number: ${actual_totem}. Expected ${expected_totem}",
@@ -238,7 +237,7 @@ inline cfile cfile::read_dat_file(const fc::path& dir, const std::string& filena
 
    // validate version
    uint32_t version = 0;
-   fc::raw::unpack( ds, version );
+   fc::raw::unpack( dat_content, version );
    if( version < min_supported_version || version > max_supported_version) {
       FC_THROW_EXCEPTION(fc::parse_error_exception,
                          "Unsupported version of file '${filename}'. "
