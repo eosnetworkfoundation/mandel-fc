@@ -219,10 +219,11 @@ inline cfile cfile::read_dat_file(const fc::path& dir, const std::string& filena
       fc::create_directories(dir);
    
    auto dat_file = dir / filename;
-   cfile dat_content;
+   using cfile_stream = fc::datastream<fc::cfile>;
+   cfile_stream dat_content;
    dat_content.set_file_path(dat_file);
    dat_content.open(cfile::update_rw_mode);
-   auto ds = dat_content.create_datastream();
+   auto ds = dat_content;
 
    // validate totem
    uint32_t totem = 0;
