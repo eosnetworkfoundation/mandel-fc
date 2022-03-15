@@ -195,6 +195,24 @@ inline cfile_datastream cfile::create_datastream() {
    return cfile_datastream(*this);
 }
 
+template <>
+class datastream<fc::cfile, void> : public fc::cfile {
+ public:
+   using fc::cfile::cfile;
+
+   bool seekp(size_t pos) { return this->seek(pos), true; }
+
+   bool get(char& c) {
+      c = this->getc();
+      return true;
+   }
+
+   bool remaining() { return !this->eof(); }
+
+   fc::cfile&       storage() { return *this; }
+   const fc::cfile& storage() const { return *this; }
+};
+
 inline cfile cfile::read_dat_file(const fc::path& dir, const std::string& filename, const uint32_t magic_number,
    const uint32_t min_supported_version, const uint32_t max_supported_version) {
    if (!fc::is_directory(dir))
@@ -231,25 +249,6 @@ inline cfile cfile::read_dat_file(const fc::path& dir, const std::string& filena
    }
    return dat_content;
 }
-
-template <>
-class datastream<fc::cfile, void> : public fc::cfile {
- public:
-   using fc::cfile::cfile;
-
-   bool seekp(size_t pos) { return this->seek(pos), true; }
-
-   bool get(char& c) {
-      c = this->getc();
-      return true;
-   }
-
-   bool remaining() { return !this->eof(); }
-
-   fc::cfile&       storage() { return *this; }
-   const fc::cfile& storage() const { return *this; }
-};
-
 
 } // namespace fc
 
