@@ -11,14 +11,16 @@ namespace persistence_util {
          fc::create_directories(dir);
       
       auto dat_file = dir / filename;
-      using cfile_stream = fc::datastream<fc::cfile>;
-      cfile_stream dat_content;
+
+      cfile dat_content;
       dat_content.set_file_path(dat_file);
       dat_content.open(cfile::update_rw_mode);
 
+      auto ds = dat_content.create_datastream();
+
       // validate totem
       uint32_t totem = 0;
-      fc::raw::unpack( dat_content, totem );
+      fc::raw::unpack( ds, totem );
       if( totem != magic_number) {
          FC_THROW_EXCEPTION(fc::parse_error_exception,
                             "File '${filename}' has unexpected magic number: ${actual_totem}. Expected ${expected_totem}",
@@ -29,7 +31,7 @@ namespace persistence_util {
 
       // validate version
       uint32_t version = 0;
-      fc::raw::unpack( dat_content, version );
+      fc::raw::unpack( ds, version );
       if( version < min_supported_version || version > max_supported_version) {
          FC_THROW_EXCEPTION(fc::parse_error_exception,
                             "Unsupported version of file '${filename}'. "
