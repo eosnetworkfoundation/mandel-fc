@@ -59,11 +59,6 @@ namespace fc {
          }
       }
 
-      void insert(typename ContainerType::value_type&& obj) {
-         _size += obj.size();
-         _index.insert(std::move(obj));
-      }
-
       void insert(typename ContainerType::value_type obj) {
          _size += obj.size();
          _index.insert(std::move(obj));
