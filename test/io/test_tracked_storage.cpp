@@ -79,14 +79,14 @@ BOOST_AUTO_TEST_CASE(simple_write_read_file_storage_test) {
    BOOST_CHECK_EQUAL( storage1_1.size(), 0);
    BOOST_CHECK_EQUAL( storage1_1.index().size(), 0);
 
-   // fc::temp_directory td;
-   auto out = fc::persistence_util::open_cfile_for_write(".", "temp.dat");
+   fc::temp_directory td;
+   auto out = fc::persistence_util::open_cfile_for_write(td.path(), "temp.dat");
    fc::persistence_util::write_persistence_header(out, 0x12345678, 5);
    storage1_1.write(out);
    out.flush();
    out.close();
 
-   auto content = fc::persistence_util::open_cfile_for_read(".", "temp.dat");
+   auto content = fc::persistence_util::open_cfile_for_read(td.path(), "temp.dat");
    auto version = fc::persistence_util::read_persistence_header(content, 0x12345678, 5, 5);
    BOOST_CHECK_EQUAL( version, 5 );
    auto ds = content.create_datastream();
@@ -107,13 +107,13 @@ BOOST_AUTO_TEST_CASE(single_write_read_file_storage_test) { try {
    BOOST_CHECK_EQUAL( storage1_1.size(), 6);
    BOOST_CHECK_EQUAL( storage1_1.index().size(), 1);
    fc::temp_directory td;
-   auto out = fc::persistence_util::open_cfile_for_write(".", "temp.dat");
+   auto out = fc::persistence_util::open_cfile_for_write(td.path(), "temp.dat");
    fc::persistence_util::write_persistence_header(out, 0x12345678, 5);
    storage1_1.write(out);
    out.flush();
    out.close();
 
-   auto content = fc::persistence_util::open_cfile_for_read(".", "temp.dat");
+   auto content = fc::persistence_util::open_cfile_for_read(td.path(), "temp.dat");
    auto version = fc::persistence_util::read_persistence_header(content, 0x12345678, 5, 5);
    BOOST_CHECK_EQUAL( version, 5 );
    auto ds = content.create_datastream();
@@ -145,7 +145,8 @@ BOOST_AUTO_TEST_CASE(write_read_file_storage_test) {
    BOOST_CHECK_EQUAL( storage1_1.size(), 40);
    BOOST_CHECK_EQUAL( storage1_1.index().size(), 8);
 
-   auto out = fc::persistence_util::open_cfile_for_write(".", "temp.dat");
+   fc::temp_directory td;
+   auto out = fc::persistence_util::open_cfile_for_write(td.path(), "temp.dat");
    fc::persistence_util::write_persistence_header(out, 0x12345678, 5);
    storage1_1.write(out);
 
@@ -161,7 +162,7 @@ BOOST_AUTO_TEST_CASE(write_read_file_storage_test) {
    out.flush();
    out.close();
 
-   auto content = fc::persistence_util::open_cfile_for_read(".", "temp.dat");
+   auto content = fc::persistence_util::open_cfile_for_read(td.path(), "temp.dat");
    auto version = fc::persistence_util::read_persistence_header(content, 0x12345678, 5, 5);
    BOOST_CHECK_EQUAL( version, 5 );
    auto ds = content.create_datastream();
