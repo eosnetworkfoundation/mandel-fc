@@ -6,14 +6,18 @@
 #include <fc/io/raw.hpp>
 #include <fstream>
 
-namespace eosio::chain_apis {
+namespace fc {
 
    /**
     * @class tracked_storage
     * @brief tracks the size of storage allocated to its underlying multi_index
     *
     * This class wraps a multi_index container and tracks the memory allocated as
-    * the container creates, modifies, and deletes.
+    * the container creates, modifies, and deletes. It also provides read and write
+    * methods for persistence.
+    * 
+    * Requires Value type to have a size() method that represents the memory used
+    * for that object and is required to be a pack/unpack-able type.
     */
 
    template <typename ContainerType, typename Value, typename PrimaryTag>
@@ -25,14 +29,17 @@ namespace eosio::chain_apis {
       typedef PrimaryTag primary_tag;
       typedef typename ContainerType::template index<primary_tag>::type primary_index_type;
 
-      tracked_storage() {
+      tracked_storage() = default;
 
-      }
-
-      void read(fc::cfile_datastream& ds, uint64_t max_memory) {
+      void read(fc::cfile_datastream& ds, size_t max_memory) {
          auto container_size = _index.size();
          fc::raw::unpack(ds, container_size);
-         for (uint64_t i = 0; i < container_size && size() < max_memory; ++i) {
+         for (uint64_t i = 0; i < container_size; ++i) {
+            if (size() >= max_memory) {
+               FC_THROW_EXCEPTION(fc::parse_error_exception,
+                                  "fc::tracked_storage es limited to ${max} bytes, but persisted data exceeds this",
+                                  ("max", max_memory));
+            }
             Value v;
             fc::raw::unpack(ds, v);
             insert(std::move(v));
@@ -51,6 +58,11 @@ namespace eosio::chain_apis {
       }
 
       void insert(Value&& obj) {
+         _index.insert(std::move(obj));
+         _size += obj.size();
+      }
+
+      void insert(const Value& obj) {
          _index.insert(obj);
          _size += obj.size();
       }
@@ -68,7 +80,7 @@ namespace eosio::chain_apis {
       }
 
       template<typename Lam>
-      void modify(typename primary_index_type::iterator itr, Lam&& lam) {
+      void modify(typename primary_index_type::iterator itr, Lam lam) {
          const auto orig_size = itr->size();
          _index.modify( itr, std::move(lam));
          _size += itr->size() - orig_size;
@@ -84,7 +96,7 @@ namespace eosio::chain_apis {
          _index.erase(itr);
       }
 
-      uint64_t size() const {
+      size_t size() const {
          return _size;
       }
 

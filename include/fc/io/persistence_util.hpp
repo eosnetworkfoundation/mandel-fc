@@ -4,9 +4,14 @@
 
 namespace fc {
 
+   /**
+    * This namespace provides functions related to reading and writing a persistence file
+    * with a header delineating the type of file and version.
+    */
+
 namespace persistence_util {
-   cfile read_persistence_file(const fc::path& dir, const std::string& filename, const uint32_t magic_number,
-      const uint32_t min_supported_version, const uint32_t max_supported_version) {
+
+   cfile open_cfile_for_read(const fc::path& dir, const std::string& filename) {
       if (!fc::is_directory(dir))
          fc::create_directories(dir);
       
@@ -14,8 +19,14 @@ namespace persistence_util {
 
       cfile dat_content;
       dat_content.set_file_path(dat_file);
-      dat_content.open(cfile::update_rw_mode);
+      if( fc::exists( dat_file ) ) {
+         dat_content.open(cfile::create_or_update_rw_mode);
+      }
+      return dat_content;
+   }
 
+   cfile read_persistence_header(cfile& dat_content, const uint32_t magic_number,
+      const uint32_t min_supported_version, const uint32_t max_supported_version, uint32_t& current_version) {
       auto ds = dat_content.create_datastream();
 
       // validate totem
@@ -41,10 +52,11 @@ namespace persistence_util {
                             ("min", min_supported_version)
                             ("max", max_supported_version));
       }
+
       return dat_content;
    }
 
-   cfile write_persistence_file(const fc::path& dir, const std::string& filename, const uint32_t magic_number, const uint32_t current_version) {
+   cfile open_cfile_for_write(const fc::path& dir, const std::string& filename) {
       if (!fc::is_directory(dir))
          fc::create_directories(dir);
 
@@ -52,9 +64,12 @@ namespace persistence_util {
       cfile dat_content;
       dat_content.set_file_path(dat_file.generic_string().c_str());
       dat_content.open( cfile::truncate_rw_mode );
+      return dat_content;
+   }
+
+   void write_persistence_file(cfile& dat_content, const uint32_t magic_number, const uint32_t current_version) {
       dat_content.write( reinterpret_cast<const char*>(&magic_number), sizeof(magic_number) );
       dat_content.write( reinterpret_cast<const char*>(&current_version), sizeof(current_version) );
-      return dat_content;
    }
 } // namespace persistence_util
 
