@@ -57,26 +57,33 @@ BOOST_AUTO_TEST_SUITE(tracked_storage_tests)
 
 BOOST_AUTO_TEST_CASE(track_storage_test) {
    fc::tracked_storage<test_size_container> storage;
-   storage.insert(test_size{ 0, 5 });
-   BOOST_CHECK_EQUAL( storage.size(), 5);
-   storage.insert(test_size{ 1, 4 });
-   BOOST_CHECK_EQUAL( storage.size(), 9);
-   storage.insert(test_size{ 2, 15 });
-   BOOST_CHECK_EQUAL( storage.size(), 24);
+   BOOST_CHECK(storage.insert(test_size{ 0, 5 }).second);
+   BOOST_CHECK_EQUAL( storage.memory_size(), 5);
+   BOOST_CHECK_EQUAL( storage.index().size(), 1);
+   BOOST_CHECK(storage.insert(test_size{ 1, 4 }).second);
+   BOOST_CHECK_EQUAL( storage.memory_size(), 9);
+   BOOST_CHECK_EQUAL( storage.index().size(), 2);
+   BOOST_CHECK(storage.insert(test_size{ 2, 15 }).second);
+   BOOST_CHECK_EQUAL( storage.memory_size(), 24);
+   BOOST_CHECK_EQUAL( storage.index().size(), 3);
    auto to_mod = storage.find(1);
    storage.modify(to_mod, [](test_size& ts) { ts.s = 14; });
-   BOOST_CHECK_EQUAL( storage.size(), 34);
+   BOOST_CHECK_EQUAL( storage.memory_size(), 34);
+   BOOST_CHECK_EQUAL( storage.index().size(), 3);
    storage.modify(to_mod, [](test_size& ts) { ts.s = 0; });
-   BOOST_CHECK_EQUAL( storage.size(), 20);
+   BOOST_CHECK_EQUAL( storage.memory_size(), 20);
+   BOOST_CHECK(!storage.insert(test_size{ 1, 100 }).second);
+   BOOST_CHECK_EQUAL( storage.memory_size(), 20);
+   BOOST_CHECK_EQUAL( storage.index().size(), 3);
    storage.erase(2);
-   BOOST_CHECK_EQUAL( storage.size(), 5);
+   BOOST_CHECK_EQUAL( storage.memory_size(), 5);
    BOOST_CHECK_NO_THROW(storage.erase(2));
 }
 
 BOOST_AUTO_TEST_CASE(simple_write_read_file_storage_test) {
    using tracked_storage1 = fc::tracked_storage<test_size_container>;
    tracked_storage1 storage1_1;
-   BOOST_CHECK_EQUAL( storage1_1.size(), 0);
+   BOOST_CHECK_EQUAL( storage1_1.memory_size(), 0);
    BOOST_CHECK_EQUAL( storage1_1.index().size(), 0);
 
    fc::temp_directory td;
@@ -93,7 +100,7 @@ BOOST_AUTO_TEST_CASE(simple_write_read_file_storage_test) {
    tracked_storage1 storage1_2;
    BOOST_CHECK(storage1_2.read(ds, 500));
    BOOST_CHECK_EQUAL( storage1_2.index().size(), 0);
-   BOOST_CHECK_EQUAL( storage1_2.size(), 0);
+   BOOST_CHECK_EQUAL( storage1_2.memory_size(), 0);
 
    const auto tellp = content.tellp();
    content.seek_end(0);
@@ -104,7 +111,7 @@ BOOST_AUTO_TEST_CASE(single_write_read_file_storage_test) { try {
    using tracked_storage1 = fc::tracked_storage<test_size_container>;
    tracked_storage1 storage1_1;
    storage1_1.insert(test_size{ 0, 6 });
-   BOOST_CHECK_EQUAL( storage1_1.size(), 6);
+   BOOST_CHECK_EQUAL( storage1_1.memory_size(), 6);
    BOOST_CHECK_EQUAL( storage1_1.index().size(), 1);
    fc::temp_directory td;
    auto out = fc::persistence_util::open_cfile_for_write(td.path(), "temp.dat");
@@ -124,7 +131,7 @@ BOOST_AUTO_TEST_CASE(single_write_read_file_storage_test) { try {
    auto itr2 = primary_idx2.cbegin();
    BOOST_CHECK_EQUAL( itr2->key, 0);
    BOOST_CHECK_EQUAL( itr2->s, 6);
-   BOOST_CHECK_EQUAL( storage1_2.size(), 6);
+   BOOST_CHECK_EQUAL( storage1_2.memory_size(), 6);
 
    const auto tellp = content.tellp();
    content.seek_end(0);
@@ -142,7 +149,7 @@ BOOST_AUTO_TEST_CASE(write_read_file_storage_test) {
    storage1_1.insert(test_size{ 16, 4 });
    storage1_1.insert(test_size{ 19, 3 });
    storage1_1.insert(test_size{ 25, 7 });
-   BOOST_CHECK_EQUAL( storage1_1.size(), 40);
+   BOOST_CHECK_EQUAL( storage1_1.memory_size(), 40);
    BOOST_CHECK_EQUAL( storage1_1.index().size(), 8);
 
    fc::temp_directory td;
@@ -154,7 +161,7 @@ BOOST_AUTO_TEST_CASE(write_read_file_storage_test) {
    tracked_storage2 storage2_1;
    const auto now = fc::time_point::now();
    storage2_1.insert(test_size2{ 3, now, 7 });
-   BOOST_CHECK_EQUAL( storage2_1.size(), 7);
+   BOOST_CHECK_EQUAL( storage2_1.memory_size(), 7);
    BOOST_CHECK_EQUAL( storage2_1.index().size(), 1);
 
    storage2_1.write(out);
@@ -187,7 +194,7 @@ BOOST_AUTO_TEST_CASE(write_read_file_storage_test) {
    BOOST_CHECK_EQUAL( itr2->s, 3);
    BOOST_CHECK_EQUAL( (++itr2)->key, 25);
    BOOST_CHECK_EQUAL( itr2->s, 7);
-   BOOST_CHECK_EQUAL( storage1_2.size(), 40);
+   BOOST_CHECK_EQUAL( storage1_2.memory_size(), 40);
 
    tracked_storage2 storage2_2;
    BOOST_CHECK(storage2_2.read(ds, 500));

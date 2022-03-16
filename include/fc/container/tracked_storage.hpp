@@ -23,7 +23,7 @@ namespace fc {
    template <typename ContainerType>
    class tracked_storage {
    private:
-      size_t _size = 0;
+      size_t _memory_size = 0;
       ContainerType _index;
    public:
       typedef typename ContainerType::template nth_index<0>::type primary_index_type;
@@ -37,7 +37,7 @@ namespace fc {
          auto container_size = _index.size();
          fc::raw::unpack(ds, container_size);
          for (size_t i = 0; i < container_size; ++i) {
-            if (size() >= max_memory) {
+            if (memory_size() >= max_memory) {
                return false;
             }
             typename ContainerType::value_type v;
@@ -51,17 +51,20 @@ namespace fc {
       void write(fc::cfile& dat_content) const {
          const auto container_size = _index.size();
          dat_content.write( reinterpret_cast<const char*>(&container_size), sizeof(container_size) );
-         const primary_index_type& primary_idx = _index.template get<0>();
          
-         for (auto itr = primary_idx.cbegin(); itr != primary_idx.cend(); ++itr) {
-            auto data = fc::raw::pack(*itr);
+         for (const auto& item : _index) {
+            auto data = fc::raw::pack(item);
             dat_content.write(data.data(), data.size());
          }
       }
 
-      void insert(typename ContainerType::value_type obj) {
-         _size += obj.size();
-         _index.insert(std::move(obj));
+      std::pair<typename primary_index_type::iterator, bool> insert(typename ContainerType::value_type obj) {
+         const auto size = obj.size();
+         auto result = _index.insert(std::move(obj));
+         if (result.second) {
+            _memory_size += size;
+         }
+         return result;
       }
 
       template<typename Key>
@@ -78,9 +81,10 @@ namespace fc {
 
       template<typename Lam>
       void modify(typename primary_index_type::iterator itr, Lam lam) {
-         const auto orig_size = itr->size();
-         _index.modify( itr, std::move(lam));
-         _size += itr->size() - orig_size;
+         _memory_size -= itr->size();
+         if (_index.modify( itr, std::move(lam))) {
+            _memory_size += itr->size();
+         }
       }
 
       template<typename Key>
@@ -89,12 +93,12 @@ namespace fc {
          if (itr == _index.end())
             return;
 
-         _size -= itr->size();
+         _memory_size -= itr->size();
          _index.erase(itr);
       }
 
-      size_t size() const {
-         return _size;
+      size_t memory_size() const {
+         return _memory_size;
       }
 
       const ContainerType& index() const {
