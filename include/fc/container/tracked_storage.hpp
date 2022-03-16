@@ -16,40 +16,42 @@ namespace fc {
     * the container creates, modifies, and deletes. It also provides read and write
     * methods for persistence.
     * 
-    * Requires Value type to have a size() method that represents the memory used
-    * for that object and is required to be a pack/unpack-able type.
+    * Requires ContainerType::value_type to have a size() method that represents the
+    * memory used for that object and is required to be a pack/unpack-able type.
     */
 
-   template <typename ContainerType, typename Value, typename PrimaryTag>
+   template <typename ContainerType>
    class tracked_storage {
    private:
-      uint64_t _size = 0;
+      size_t _size = 0;
       ContainerType _index;
    public:
-      typedef PrimaryTag primary_tag;
-      typedef typename ContainerType::template index<primary_tag>::type primary_index_type;
+      typedef typename ContainerType::template nth_index<0>::type primary_index_type;
 
       tracked_storage() = default;
 
-      void read(fc::cfile_datastream& ds, size_t max_memory) {
+      // read in the contents of a persisted tracked_storage and limit the storage to
+      // max_memory.
+      // returns true if entire persisted tracked_storage was read
+      bool read(fc::cfile_datastream& ds, size_t max_memory) {
          auto container_size = _index.size();
          fc::raw::unpack(ds, container_size);
-         for (uint64_t i = 0; i < container_size; ++i) {
+         for (size_t i = 0; i < container_size; ++i) {
             if (size() >= max_memory) {
-               FC_THROW_EXCEPTION(fc::parse_error_exception,
-                                  "fc::tracked_storage es limited to ${max} bytes, but persisted data exceeds this",
-                                  ("max", max_memory));
+               return false;
             }
-            Value v;
+            ContainerType::value_type v;
             fc::raw::unpack(ds, v);
             insert(std::move(v));
          }
+
+         return true;
       }
 
       void write(fc::cfile& dat_content) const {
          const auto container_size = _index.size();
          dat_content.write( reinterpret_cast<const char*>(&container_size), sizeof(container_size) );
-         const primary_index_type& primary_idx = _index.template get<primary_tag>();
+         const primary_index_type& primary_idx = _index.template get<0>();
          
          for (auto itr = primary_idx.cbegin(); itr != primary_idx.cend(); ++itr) {
             auto data = fc::raw::pack(*itr);
@@ -57,25 +59,25 @@ namespace fc {
          }
       }
 
-      void insert(Value&& obj) {
-         _index.insert(std::move(obj));
+      void insert(ContainerType::value_type&& obj) {
          _size += obj.size();
+         _index.insert(std::move(obj));
       }
 
-      void insert(const Value& obj) {
-         _index.insert(obj);
+      void insert(ContainerType::value_type obj) {
          _size += obj.size();
+         _index.insert(std::move(obj));
       }
 
       template<typename Key>
       typename primary_index_type::iterator find(const Key& key) {
-         primary_index_type& primary_idx = _index.template get<primary_tag>();
+         primary_index_type& primary_idx = _index.template get<0>();
          return primary_idx.find(key);
       }
 
       template<typename Key>
       typename primary_index_type::const_iterator find(const Key& key) const {
-         const primary_index_type& primary_idx = _index.template get<primary_tag>();
+         const primary_index_type& primary_idx = _index.template get<0>();
          return primary_idx.find(key);
       }
 
