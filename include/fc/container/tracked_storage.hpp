@@ -59,7 +59,7 @@ namespace fc {
          }
       }
 
-      std::pair<primary_index_type::iterator, bool> insert(typename ContainerType::value_type obj) {
+      std::pair<typename primary_index_type::iterator, bool> insert(typename ContainerType::value_type obj) {
          const auto size = obj.size();
          auto result = _index.insert(std::move(obj));
          if (result.second) {
