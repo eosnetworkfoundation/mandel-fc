@@ -51,10 +51,9 @@ namespace fc {
       void write(fc::cfile& dat_content) const {
          const auto container_size = _index.size();
          dat_content.write( reinterpret_cast<const char*>(&container_size), sizeof(container_size) );
-         const primary_index_type& primary_idx = _index.template get<0>();
          
-         for (auto itr = primary_idx.cbegin(); itr != primary_idx.cend(); ++itr) {
-            auto data = fc::raw::pack(*itr);
+         for (const auto& item : _index) {
+            auto data = fc::raw::pack(item);
             dat_content.write(data.data(), data.size());
          }
       }
