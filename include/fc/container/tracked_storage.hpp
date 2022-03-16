@@ -81,9 +81,9 @@ namespace fc {
 
       template<typename Lam>
       void modify(typename primary_index_type::iterator itr, Lam lam) {
-         const auto orig_size = itr->size();
+         _memory_size -= itr->size();
          _index.modify( itr, std::move(lam));
-         _memory_size += itr->size() - orig_size;
+         _memory_size += itr->size();
       }
 
       template<typename Key>
