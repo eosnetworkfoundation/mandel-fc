@@ -67,7 +67,7 @@ namespace persistence_util {
       return dat_content;
    }
 
-   void write_persistence_file(cfile& dat_content, const uint32_t magic_number, const uint32_t current_version) {
+   void write_persistence_header(cfile& dat_content, const uint32_t magic_number, const uint32_t current_version) {
       dat_content.write( reinterpret_cast<const char*>(&magic_number), sizeof(magic_number) );
       dat_content.write( reinterpret_cast<const char*>(&current_version), sizeof(current_version) );
    }
