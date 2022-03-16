@@ -57,11 +57,11 @@ BOOST_AUTO_TEST_SUITE(tracked_storage_tests)
 
 BOOST_AUTO_TEST_CASE(track_storage_test) {
    fc::tracked_storage<test_size_container> storage;
-   storage.insert({ 0, 5 });
+   storage.insert(test_size{ 0, 5 });
    BOOST_CHECK_EQUAL( storage.size(), 5);
-   storage.insert({ 1, 4 });
+   storage.insert(test_size{ 1, 4 });
    BOOST_CHECK_EQUAL( storage.size(), 9);
-   storage.insert({ 2, 15 });
+   storage.insert(test_size{ 2, 15 });
    BOOST_CHECK_EQUAL( storage.size(), 24);
    auto to_mod = storage.find(1);
    storage.modify(to_mod, [](test_size& ts) { ts.s = 14; });
@@ -103,7 +103,7 @@ BOOST_AUTO_TEST_CASE(simple_write_read_file_storage_test) {
 BOOST_AUTO_TEST_CASE(single_write_read_file_storage_test) { try {
    using tracked_storage1 = fc::tracked_storage<test_size_container>;
    tracked_storage1 storage1_1;
-   storage1_1.insert({ 0, 6 });
+   storage1_1.insert(test_size{ 0, 6 });
    BOOST_CHECK_EQUAL( storage1_1.size(), 6);
    BOOST_CHECK_EQUAL( storage1_1.index().size(), 1);
    fc::temp_directory td;
@@ -134,14 +134,14 @@ BOOST_AUTO_TEST_CASE(single_write_read_file_storage_test) { try {
 BOOST_AUTO_TEST_CASE(write_read_file_storage_test) {
    using tracked_storage1 = fc::tracked_storage<test_size_container>;
    tracked_storage1 storage1_1;
-   storage1_1.insert({ 0, 6 });
-   storage1_1.insert({ 3, 7 });
-   storage1_1.insert({ 5, 3 });
-   storage1_1.insert({ 9, 4 });
-   storage1_1.insert({ 15, 6 });
-   storage1_1.insert({ 16, 4 });
-   storage1_1.insert({ 19, 3 });
-   storage1_1.insert({ 25, 7 });
+   storage1_1.insert(test_size{ 0, 6 });
+   storage1_1.insert(test_size{ 3, 7 });
+   storage1_1.insert(test_size{ 5, 3 });
+   storage1_1.insert(test_size{ 9, 4 });
+   storage1_1.insert(test_size{ 15, 6 });
+   storage1_1.insert(test_size{ 16, 4 });
+   storage1_1.insert(test_size{ 19, 3 });
+   storage1_1.insert(test_size{ 25, 7 });
    BOOST_CHECK_EQUAL( storage1_1.size(), 40);
    BOOST_CHECK_EQUAL( storage1_1.index().size(), 8);
 
@@ -153,7 +153,7 @@ BOOST_AUTO_TEST_CASE(write_read_file_storage_test) {
    using tracked_storage2 = fc::tracked_storage<test_size2_container>;
    tracked_storage2 storage2_1;
    const auto now = fc::time_point::now();
-   storage2_1.insert({ 3, now, 7 });
+   storage2_1.insert(test_size2{ 3, now, 7 });
    BOOST_CHECK_EQUAL( storage2_1.size(), 7);
    BOOST_CHECK_EQUAL( storage2_1.index().size(), 1);
 
