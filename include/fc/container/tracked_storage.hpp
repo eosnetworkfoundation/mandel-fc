@@ -40,7 +40,7 @@ namespace fc {
             if (size() >= max_memory) {
                return false;
             }
-            ContainerType::value_type v;
+            typename ContainerType::value_type v;
             fc::raw::unpack(ds, v);
             insert(std::move(v));
          }
@@ -59,12 +59,12 @@ namespace fc {
          }
       }
 
-      void insert(ContainerType::value_type&& obj) {
+      void insert(typename ContainerType::value_type&& obj) {
          _size += obj.size();
          _index.insert(std::move(obj));
       }
 
-      void insert(ContainerType::value_type obj) {
+      void insert(typename ContainerType::value_type obj) {
          _size += obj.size();
          _index.insert(std::move(obj));
       }
