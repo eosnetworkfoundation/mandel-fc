@@ -81,7 +81,7 @@ BOOST_AUTO_TEST_CASE(simple_write_read_file_storage_test) {
 
    fc::temp_directory td;
    auto out = fc::persistence_util::open_cfile_for_write(td.path(), "temp.dat");
-   BOOST_CHECK(fc::persistence_util::write_persistence_header(out, 0x12345678, 5));
+   fc::persistence_util::write_persistence_header(out, 0x12345678, 5);
    storage1_1.write(out);
    out.flush();
    out.close();
@@ -91,7 +91,7 @@ BOOST_AUTO_TEST_CASE(simple_write_read_file_storage_test) {
    BOOST_CHECK_EQUAL( version, 5 );
    auto ds = content.create_datastream();
    tracked_storage1 storage1_2;
-   storage1_2.read(ds, 500);
+   BOOST_CHECK(storage1_2.read(ds, 500));
    BOOST_CHECK_EQUAL( storage1_2.index().size(), 0);
    BOOST_CHECK_EQUAL( storage1_2.size(), 0);
 
@@ -108,7 +108,7 @@ BOOST_AUTO_TEST_CASE(single_write_read_file_storage_test) { try {
    BOOST_CHECK_EQUAL( storage1_1.index().size(), 1);
    fc::temp_directory td;
    auto out = fc::persistence_util::open_cfile_for_write(td.path(), "temp.dat");
-   BOOST_CHECK(fc::persistence_util::write_persistence_header(out, 0x12345678, 5));
+   fc::persistence_util::write_persistence_header(out, 0x12345678, 5);
    storage1_1.write(out);
    out.flush();
    out.close();
@@ -118,7 +118,7 @@ BOOST_AUTO_TEST_CASE(single_write_read_file_storage_test) { try {
    BOOST_CHECK_EQUAL( version, 5 );
    auto ds = content.create_datastream();
    tracked_storage1 storage1_2;
-   storage1_2.read(ds, 500);
+   BOOST_CHECK(storage1_2.read(ds, 500));
    BOOST_CHECK_EQUAL( storage1_2.index().size(), 1);
    const auto& primary_idx2 = storage1_2.index().get<by_key>();
    auto itr2 = primary_idx2.cbegin();
@@ -147,7 +147,7 @@ BOOST_AUTO_TEST_CASE(write_read_file_storage_test) {
 
    fc::temp_directory td;
    auto out = fc::persistence_util::open_cfile_for_write(td.path(), "temp.dat");
-   BOOST_CHECK(fc::persistence_util::write_persistence_header(out, 0x12345678, 5));
+   fc::persistence_util::write_persistence_header(out, 0x12345678, 5);
    storage1_1.write(out);
 
    using tracked_storage2 = fc::tracked_storage<test_size2_container>;
@@ -167,7 +167,7 @@ BOOST_AUTO_TEST_CASE(write_read_file_storage_test) {
    BOOST_CHECK_EQUAL( version, 5 );
    auto ds = content.create_datastream();
    tracked_storage1 storage1_2;
-   storage1_2.read(ds, 500);
+   BOOST_CHECK(storage1_2.read(ds, 500));
    BOOST_CHECK_EQUAL( storage1_2.index().size(), 8);
    const auto& primary_idx1_2 = storage1_2.index().get<by_key>();
    auto itr2 = primary_idx1_2.cbegin();
@@ -190,7 +190,7 @@ BOOST_AUTO_TEST_CASE(write_read_file_storage_test) {
    BOOST_CHECK_EQUAL( storage1_2.size(), 40);
 
    tracked_storage2 storage2_2;
-   storage2_2.read(ds, 500);
+   BOOST_CHECK(storage2_2.read(ds, 500));
    BOOST_CHECK_EQUAL( storage2_2.index().size(), 1);
    const auto& primary_idx2_2 = storage2_2.index().get<by_key>();
    auto itr3 = primary_idx2_2.cbegin();

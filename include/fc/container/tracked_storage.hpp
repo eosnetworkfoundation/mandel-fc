@@ -30,8 +30,8 @@ namespace fc {
 
       tracked_storage() = default;
 
-      // read in the contents of a persisted tracked_storage and limit the storage to
-      // max_memory.
+      // read in the contents of a persisted tracked_storage and prevent reading in
+      // more stored objects once max_memory is reached.
       // returns true if entire persisted tracked_storage was read
       bool read(fc::cfile_datastream& ds, size_t max_memory) {
          auto container_size = _index.size();
