@@ -25,8 +25,8 @@ namespace persistence_util {
       return dat_content;
    }
 
-   cfile read_persistence_header(cfile& dat_content, const uint32_t magic_number,
-      const uint32_t min_supported_version, const uint32_t max_supported_version, uint32_t& current_version) {
+   uint32_t read_persistence_header(cfile& dat_content, const uint32_t magic_number, const uint32_t min_supported_version,
+      const uint32_t max_supported_version) {
       auto ds = dat_content.create_datastream();
 
       // validate totem
@@ -34,8 +34,7 @@ namespace persistence_util {
       fc::raw::unpack( ds, totem );
       if( totem != magic_number) {
          FC_THROW_EXCEPTION(fc::parse_error_exception,
-                            "File '${filename}' has unexpected magic number: ${actual_totem}. Expected ${expected_totem}",
-                            ("filename", dat_file.generic_string())
+                            "File has unexpected magic number: ${actual_totem}. Expected ${expected_totem}",
                             ("actual_totem", totem)
                             ("expected_totem", magic_number));
       }
@@ -45,15 +44,14 @@ namespace persistence_util {
       fc::raw::unpack( ds, version );
       if( version < min_supported_version || version > max_supported_version) {
          FC_THROW_EXCEPTION(fc::parse_error_exception,
-                            "Unsupported version of file '${filename}'. "
+                            "Unsupported version for file. "
                             "Version is ${version} while code supports version(s) [${min},${max}]",
-                            ("filename", dat_file.generic_string())
                             ("version", version)
                             ("min", min_supported_version)
                             ("max", max_supported_version));
       }
 
-      return dat_content;
+      return version;
    }
 
    cfile open_cfile_for_write(const fc::path& dir, const std::string& filename) {
