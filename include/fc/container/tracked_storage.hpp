@@ -9,12 +9,12 @@
 namespace fc {
 
    /**
-    * Specialize tracked::size() if obj does not provide a size() method that represents memory size.
+    * Specialize tracked::memory_size() if obj does not provide a memory_size() method that represents memory size.
     */
    namespace tracked {
       template<typename T>
-      size_t size( const T& obj ) {
-         return obj.size();
+      size_t memory_size( const T& obj ) {
+         return obj.memory_size();
       }
    }
 
@@ -70,7 +70,7 @@ namespace fc {
       }
 
       std::pair<typename primary_index_type::iterator, bool> insert(typename ContainerType::value_type obj) {
-         const auto size = tracked::size(obj);
+         const auto size = tracked::memory_size(obj);
          auto result = _index.insert(std::move(obj));
          if (result.second) {
             _memory_size += size;
@@ -92,9 +92,9 @@ namespace fc {
 
       template<typename Lam>
       void modify(typename primary_index_type::iterator itr, Lam lam) {
-         _memory_size -= tracked::size(*itr);
+         _memory_size -= tracked::memory_size(*itr);
          if (_index.modify( itr, std::move(lam))) {
-            _memory_size += tracked::size(*itr);
+            _memory_size += tracked::memory_size(*itr);
          }
       }
 
@@ -104,7 +104,7 @@ namespace fc {
          if (itr == _index.end())
             return;
 
-         _memory_size -= tracked::size(*itr);
+         _memory_size -= tracked::memory_size(*itr);
          _index.erase(itr);
       }
 
