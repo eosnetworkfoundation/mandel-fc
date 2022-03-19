@@ -18,7 +18,6 @@ namespace fc {
    class dmlog_appender::impl {
       public:
          bool is_stopped = false;
-         boost::mutex log_mutex;
          FILE* out = nullptr;
          bool owns_out = false;
    };
@@ -63,7 +62,6 @@ namespace fc {
       FILE* out = my->out;
 
       string message = format_string( "DMLOG " + m.get_format() + "\n", m.get_data() );
-      std::unique_lock<boost::mutex> lock(my->log_mutex);
 
       auto remaining_size = message.size();
       auto message_ptr = message.c_str();
