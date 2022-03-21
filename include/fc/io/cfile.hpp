@@ -69,7 +69,7 @@ public:
          int err = ferror(_file.get());
          throw std::ios_base::failure( "cfile: " + _file_path.generic_string() +
                                        " unable to SEEK_SET to: " + std::to_string(loc) +
-                                       ", ec: " + std::to_string(err) );
+                                       ", ferror: " + std::to_string(err) );
       }
    }
 
@@ -78,7 +78,7 @@ public:
          int err = ferror(_file.get());
          throw std::ios_base::failure( "cfile: " + _file_path.generic_string() +
                                        " unable to SEEK_END to: " + std::to_string(loc) +
-                                       ", ec: " + std::to_string(err) );
+                                       ", ferror: " + std::to_string(err) );
       }
    }
 
@@ -87,7 +87,7 @@ public:
          int err = ferror(_file.get());
          throw std::ios_base::failure( "cfile: " + _file_path.generic_string() +
                                        " unable to SEEK_CUR to: " + std::to_string(loc) +
-                                       ", ec: " + std::to_string(err) );
+                                       ", ferror: " + std::to_string(err) );
       }
    }
 
@@ -100,7 +100,7 @@ public:
                                        " unable to read " + std::to_string( n ) + " bytes;"
                                        " only read " + std::to_string( result ) +
                                        ", eof: " + (eof == 0 ? "false" : "true") +
-                                       ", ec: " + std::to_string(err) );
+                                       ", ferror: " + std::to_string(err) );
       }
    }
 
@@ -114,9 +114,9 @@ public:
 
    void flush() {
       if( 0 != fflush( _file.get() ) ) {
-         int ec = ferror( _file.get() );
+         int err = ferror( _file.get() );
          throw std::ios_base::failure( "cfile: " + _file_path.generic_string() +
-                                       " unable to flush file, ferror: " + std::to_string( ec ) );
+                                       " unable to flush file, ferror: " + std::to_string( err ) );
       }
    }
 
