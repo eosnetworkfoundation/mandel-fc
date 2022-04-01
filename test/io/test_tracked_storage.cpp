@@ -17,9 +17,6 @@ using namespace boost::multi_index;
 struct test_size {
    uint64_t key = 0;
    uint64_t s = 0;
-   uint64_t size() const {
-      return s;
-   }
 };
 
 FC_REFLECT( test_size, (key)(s) )
@@ -36,12 +33,21 @@ struct test_size2 {
    uint64_t key = 0;
    fc::time_point time; 
    uint64_t s = 0;
-   uint64_t size() const {
-      return s;
-   }
 };
 
 FC_REFLECT( test_size2, (key)(time)(s) )
+
+namespace fc::tracked {
+  template<>
+  size_t memory_size(const test_size& t) {
+     return t.s;
+  }
+
+  template<>
+  size_t memory_size(const test_size2& t) {
+     return t.s;
+  }
+}
 
 struct by_time;
 typedef multi_index_container<
