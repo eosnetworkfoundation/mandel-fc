@@ -27,6 +27,7 @@ namespace persistence_util {
 
    uint32_t read_persistence_header(cfile& dat_content, const uint32_t magic_number, const uint32_t min_supported_version,
       const uint32_t max_supported_version) {
+      dat_content.seek(0); // needed on mac
       auto ds = dat_content.create_datastream();
 
       // validate totem

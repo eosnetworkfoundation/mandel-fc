@@ -66,30 +66,41 @@ public:
 
    void seek( long loc ) {
       if( 0 != fseek( _file.get(), loc, SEEK_SET ) ) {
+         int err = ferror(_file.get());
          throw std::ios_base::failure( "cfile: " + _file_path.generic_string() +
-                                       " unable to SEEK_SET to: " + std::to_string(loc) );
+                                       " unable to SEEK_SET to: " + std::to_string(loc) +
+                                       ", ferror: " + std::to_string(err) );
       }
    }
 
    void seek_end( long loc ) {
       if( 0 != fseek( _file.get(), loc, SEEK_END ) ) {
+         int err = ferror(_file.get());
          throw std::ios_base::failure( "cfile: " + _file_path.generic_string() +
-                                       " unable to SEEK_END to: " + std::to_string(loc) );
+                                       " unable to SEEK_END to: " + std::to_string(loc) +
+                                       ", ferror: " + std::to_string(err) );
       }
    }
 
    void skip( long loc) {
       if( 0 != fseek( _file.get(), loc, SEEK_CUR ) ) {
+         int err = ferror(_file.get());
          throw std::ios_base::failure( "cfile: " + _file_path.generic_string() +
-                                       " unable to SEEK_CUR to: " + std::to_string(loc) );
+                                       " unable to SEEK_CUR to: " + std::to_string(loc) +
+                                       ", ferror: " + std::to_string(err) );
       }
    }
 
    void read( char* d, size_t n ) {
       size_t result = fread( d, 1, n, _file.get() );
       if( result != n ) {
+         int err = ferror(_file.get());
+         int eof = feof(_file.get());
          throw std::ios_base::failure( "cfile: " + _file_path.generic_string() +
-                                       " unable to read " + std::to_string( n ) + " bytes; only read " + std::to_string( result ) );
+                                       " unable to read " + std::to_string( n ) + " bytes;"
+                                       " only read " + std::to_string( result ) +
+                                       ", eof: " + (eof == 0 ? "false" : "true") +
+                                       ", ferror: " + std::to_string(err) );
       }
    }
 
@@ -103,9 +114,9 @@ public:
 
    void flush() {
       if( 0 != fflush( _file.get() ) ) {
-         int ec = ferror( _file.get() );
+         int err = ferror( _file.get() );
          throw std::ios_base::failure( "cfile: " + _file_path.generic_string() +
-                                       " unable to flush file, ferror: " + std::to_string( ec ) );
+                                       " unable to flush file, ferror: " + std::to_string( err ) );
       }
    }
 
@@ -190,8 +201,6 @@ class datastream<fc::cfile, void> : public fc::cfile {
       c = this->getc();
       return true;
    }
-
-   bool remaining() { return !this->eof(); }
 
    fc::cfile&       storage() { return *this; }
    const fc::cfile& storage() const { return *this; }
