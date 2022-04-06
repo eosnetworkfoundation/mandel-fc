@@ -17,6 +17,7 @@ public:
 
    // First call should be on one thread before any calls to fc::time_point::now()
    static void set_now( time_type t );
+   static void set_now( const fc::time_point& now );
 
    // Thread safe only if first call to set_now is before any threads are spawned or memory barrier introduced
    static bool is_set() { return mock_enabled_; }
