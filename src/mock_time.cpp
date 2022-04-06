@@ -12,7 +12,12 @@ mock_time_traits::time_type mock_time_traits::now() noexcept {
 }
 
 void mock_time_traits::set_now( time_type t ) {
-   now_ = (t - epoch_).total_microseconds();
+   fc::time_point now( fc::microseconds( (t - epoch_).total_microseconds() ) );
+   set_now( now );
+}
+
+void mock_time_traits::set_now( const fc::time_point& now ) {
+   now_ = now.time_since_epoch().count();
    if( !mock_enabled_ ) mock_enabled_ = true;
 
    // After modifying the clock, we need to sleep the thread to give the io_service
