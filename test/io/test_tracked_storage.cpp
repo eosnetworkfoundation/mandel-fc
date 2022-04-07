@@ -84,6 +84,9 @@ BOOST_AUTO_TEST_CASE(track_storage_test) {
    storage.erase(2);
    BOOST_CHECK_EQUAL( storage.memory_size(), 5);
    BOOST_CHECK_NO_THROW(storage.erase(2));
+   BOOST_CHECK_EQUAL( storage.memory_size(), 5);
+   storage.erase( storage.index().find(0) );
+   BOOST_CHECK_EQUAL( storage.memory_size(), 0);
 }
 
 BOOST_AUTO_TEST_CASE(simple_write_read_file_storage_test) {

@@ -108,6 +108,11 @@ namespace fc {
          _index.erase(itr);
       }
 
+      void erase(typename primary_index_type::iterator itr) {
+         _memory_size -= tracked::memory_size(*itr);
+         _index.erase(itr);
+      }
+
       size_t memory_size() const {
          return _memory_size;
       }
