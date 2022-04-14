@@ -196,6 +196,16 @@ target_link_libraries( fc PUBLIC ${LINK_USR_LOCAL_LIB}
                                  ${OPENSSL_LIBRARIES} ${ZLIB_LIBRARIES} ${PLATFORM_SPECIFIC_LIBS} ${RPCRT4} ${CMAKE_DL_LIBS} ${readline_libraries} ${ECC_LIB} ${security_framework} ${corefoundation_framework} )
 
 
+get_directory_property(INHERITED_COMPILE_DEFS COMPILE_DEFINITIONS)
+if(INHERITED_COMPILE_DEFS MATCHES "OPENSSL_API_COMPAT=0x00908000L")
+  # that's great, do nothing
+elseif(INHERITED_COMPILE_DEFS MATCHES "OPENSSL_API_COMPAT")
+  message(WARNING "fc may not work correctly with an OPENSSL_API_COMPAT not set to 0x00908000L")
+else()
+  message(WARNING "fc adding OPENSSL_API_COMPAT flag; add 'OPENSSL_API_COMPAT=0x00908000L' before including fc's cmake to silence this warning")
+  target_compile_definitions(fc PUBLIC OPENSSL_API_COMPAT=0x00908000L)
+endif()
+
 SET(OPENSSL_CONF_TARGET )
 IF(DEFINED CMAKE_RUNTIME_OUTPUT_DIRECTORY)
   SET (OPENSSL_CONF_TARGET ${CMAKE_RUNTIME_OUTPUT_DIRECTORY})
