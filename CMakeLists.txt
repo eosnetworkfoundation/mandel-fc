@@ -77,7 +77,6 @@ set( fc_sources
      src/log/dmlog_appender.cpp
      src/log/logger_config.cpp
      src/crypto/_digest_common.cpp
-     src/crypto/openssl.cpp
      src/crypto/aes.cpp
      src/crypto/crc.cpp
      src/crypto/city.cpp

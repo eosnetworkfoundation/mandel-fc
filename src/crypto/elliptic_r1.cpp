@@ -13,11 +13,7 @@ namespace fc { namespace crypto { namespace r1 {
       class public_key_impl
       {
         public:
-          public_key_impl()
-          :_key(nullptr)
-          {
-            init_openssl();
-          }
+          public_key_impl() : _key(nullptr) {}
 
           ~public_key_impl()
           {
@@ -35,11 +31,8 @@ namespace fc { namespace crypto { namespace r1 {
       class private_key_impl
       {
         public:
-          private_key_impl()
-          :_key(nullptr)
-          {
-            init_openssl();
-          }
+          private_key_impl() : _key(nullptr) {}
+
           ~private_key_impl()
           {
             if( _key != nullptr )
