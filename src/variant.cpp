@@ -572,36 +572,32 @@ size_t            variant::size()const
     return get_array().size();
 }
 
-size_t variant::estimated_size()
+size_t variant::estimated_size()const
 {
-   size_t iter = 0;
-   size_t sum = 0;
    switch( get_type() )
    {
    case null_type:
-      return 0;
    case int64_type:
-      return sizeof(int64_t);
    case uint64_type:
-      return sizeof(uint64_t);
    case double_type:
-      return sizeof(double);
    case bool_type:
-      return sizeof(bool);
+      return sizeof(*this);
    case string_type:
-      return as_string().length();
+      return as_string().length() + sizeof(string) + sizeof(*this);
    case array_type:
-      sum += sizeof(size_t);
-      for (iter; iter < size(); ++iter) {
-         sum += get_array()[iter].estimated_size();
+   {
+      auto arr = get_array();
+      auto arr_size = arr.size();
+      size_t sum = sizeof(*this) + sizeof(variants);
+      for (size_t iter = 0; iter < arr_size; ++iter) {
+         sum += arr[iter].estimated_size();
       }
       return sum;
+   }
    case object_type:
-      return get_object().estimated_size();
+      return get_object().estimated_size() + sizeof(*this);
    case blob_type:
-      sum += sizeof(size_t);
-      sum += get_blob().data.size();
-      return sum;
+      return sizeof(blob) + get_blob().data.size() + sizeof(*this);
    default:
       FC_THROW_EXCEPTION( assert_exception, "Invalid Type / Corrupted Memory" );
    }

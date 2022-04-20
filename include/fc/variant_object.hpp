@@ -91,7 +91,7 @@ namespace fc
       variant_object& operator=( mutable_variant_object&& );
       variant_object& operator=( const mutable_variant_object& );
 
-      size_t estimated_size();
+      size_t estimated_size()const;
 
    private:
       std::shared_ptr< std::vector< entry > > _key_value;
