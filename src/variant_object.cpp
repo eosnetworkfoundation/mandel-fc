@@ -167,8 +167,9 @@ namespace fc
       auto kv_size = size();
       size_t sum = sizeof(*this) + sizeof(std::vector<entry>);
       for (size_t iter = 0; iter < kv_size; ++iter) {
-         sum += _key_value->at(iter).key().length() + sizeof(string);
-         sum += _key_value->at(iter).value().estimated_size();
+         const auto& kv = _key_value->at(iter);
+         sum += kv.key().length() + sizeof(string);
+         sum += kv.value().estimated_size();
       }
       return sum;
    }

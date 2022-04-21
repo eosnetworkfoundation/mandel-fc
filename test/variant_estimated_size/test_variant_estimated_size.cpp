@@ -106,7 +106,7 @@ BOOST_AUTO_TEST_CASE(variant_object_variant_estimated_size_test)
    string k1 = "key_bool";
    string k2 = "key_string";
    string k3 = "key_int16";
-   string k4 = "key_blob"; // 35 + 4 * sizeof(string) 
+   string k4 = "key_blob"; // 35 + 4 * sizeof(string)
 
    bool b = false;
    string s = "HelloWorld"; // 10 + sizeof(string)

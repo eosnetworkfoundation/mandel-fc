@@ -586,7 +586,7 @@ size_t variant::estimated_size()const
       return as_string().length() + sizeof(string) + sizeof(*this);
    case array_type:
    {
-      auto arr = get_array();
+      const auto& arr = get_array();
       auto arr_size = arr.size();
       size_t sum = sizeof(*this) + sizeof(variants);
       for (size_t iter = 0; iter < arr_size; ++iter) {
