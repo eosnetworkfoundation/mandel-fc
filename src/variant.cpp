@@ -572,6 +572,37 @@ size_t            variant::size()const
     return get_array().size();
 }
 
+size_t variant::estimated_size()const
+{
+   switch( get_type() )
+   {
+   case null_type:
+   case int64_type:
+   case uint64_type:
+   case double_type:
+   case bool_type:
+      return sizeof(*this);
+   case string_type:
+      return as_string().length() + sizeof(string) + sizeof(*this);
+   case array_type:
+   {
+      const auto& arr = get_array();
+      auto arr_size = arr.size();
+      size_t sum = sizeof(*this) + sizeof(variants);
+      for (size_t iter = 0; iter < arr_size; ++iter) {
+         sum += arr[iter].estimated_size();
+      }
+      return sum;
+   }
+   case object_type:
+      return get_object().estimated_size() + sizeof(*this);
+   case blob_type:
+      return sizeof(blob) + get_blob().data.size() + sizeof(*this);
+   default:
+      FC_THROW_EXCEPTION( assert_exception, "Invalid Type / Corrupted Memory" );
+   }
+}
+
 const string&        variant::get_string()const
 {
   if( get_type() == string_type )

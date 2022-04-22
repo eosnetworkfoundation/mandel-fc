@@ -162,6 +162,17 @@ namespace fc
       return *this;
    }
 
+   size_t variant_object::estimated_size()const
+   {
+      auto kv_size = size();
+      size_t sum = sizeof(*this) + sizeof(std::vector<entry>);
+      for (size_t iter = 0; iter < kv_size; ++iter) {
+         const auto& kv = _key_value->at(iter);
+         sum += kv.key().length() + sizeof(string);
+         sum += kv.value().estimated_size();
+      }
+      return sum;
+   }
 
    void to_variant( const variant_object& var,  variant& vo )
    {
