@@ -1,5 +1,5 @@
 add_library(secp256k1 STATIC
-  secp256k1/src/secp256k1.c
+  secp256k1/src/secp256k1.c secp256k1/src/precomputed_ecmult.c secp256k1/src/precomputed_ecmult_gen.c
 )
 
 target_include_directories(secp256k1
