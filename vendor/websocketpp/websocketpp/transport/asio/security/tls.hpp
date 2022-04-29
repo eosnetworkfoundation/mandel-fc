@@ -231,6 +231,7 @@ protected:
         // TODO: is this the best way to check whether this function is 
         //       available in the version of OpenSSL being used?
         // TODO: consider case where host is an IP address
+#if OPENSSL_VERSION_NUMBER >= 0x90812f
         if (!m_is_server) {
             // For clients on systems with a suitable OpenSSL version, set the
             // TLS SNI hostname header so connecting to TLS servers using SNI
@@ -241,6 +242,7 @@ protected:
                 callback(socket::make_error_code(socket::error::tls_failed_sni_hostname));
             }
         }
+#endif
 
         if (m_socket_init_handler) {
             m_socket_init_handler(m_hdl,get_socket());
