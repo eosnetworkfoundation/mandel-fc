@@ -77,7 +77,6 @@ set( fc_sources
      src/log/dmlog_appender.cpp
      src/log/logger_config.cpp
      src/crypto/_digest_common.cpp
-     src/crypto/openssl.cpp
      src/crypto/aes.cpp
      src/crypto/crc.cpp
      src/crypto/city.cpp
@@ -195,6 +194,9 @@ target_link_libraries( fc PUBLIC ${LINK_USR_LOCAL_LIB}
                                  Boost::date_time Boost::filesystem Boost::chrono Boost::iostreams Threads::Threads
                                  ${OPENSSL_LIBRARIES} ${ZLIB_LIBRARIES} ${PLATFORM_SPECIFIC_LIBS} ${RPCRT4} ${CMAKE_DL_LIBS} ${readline_libraries} ${ECC_LIB} ${security_framework} ${corefoundation_framework} )
 
+# Critically, this ensures that OpenSSL 1.1 & 3.0 both have a variant of BN_zero() with void return value. But it also allows access
+#  to some obsoleted AES functions in 3.0 too, since 3.0's API_COMPAT is effectively 3.0 by default
+target_compile_definitions(fc PUBLIC "OPENSSL_API_COMPAT=0x10100000L" "OPENSSL_NO_DEPRECATED")
 
 SET(OPENSSL_CONF_TARGET )
 IF(DEFINED CMAKE_RUNTIME_OUTPUT_DIRECTORY)

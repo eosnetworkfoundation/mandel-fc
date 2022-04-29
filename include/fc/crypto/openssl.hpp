@@ -8,11 +8,7 @@
 #include <openssl/ecdh.h>
 #include <openssl/sha.h>
 #include <openssl/obj_mac.h>
-
-#if OPENSSL_VERSION_NUMBER < 0x10100000L
-void ECDSA_SIG_get0(const ECDSA_SIG *sig, const BIGNUM **pr, const BIGNUM **ps);
-int ECDSA_SIG_set0(ECDSA_SIG *sig, BIGNUM *r, BIGNUM *s);
-#endif
+#include <openssl/bn.h>
 
 /** 
  * @file openssl.hpp
@@ -60,14 +56,5 @@ namespace fc
         ssl_bignum() : ssl_wrapper(BN_new()) {}
         ~ssl_bignum() { BN_free(obj); }
     };
-
-    /** Allows to explicitly specify OpenSSL configuration file path to be loaded at OpenSSL library init.
-        If not set OpenSSL will try to load the conf. file (openssl.cnf) from the path it was
-        configured with what caused serious Keyhotee startup bugs on some Win7, Win8 machines.
-        \warning to be effective this method should be used before any part using OpenSSL, especially
-        before init_openssl call
-    */
-    void store_configuration_path(const path& filePath);
-    int init_openssl();
 
 } // namespace fc

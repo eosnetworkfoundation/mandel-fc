@@ -13,11 +13,7 @@ namespace fc { namespace crypto { namespace r1 {
       class public_key_impl
       {
         public:
-          public_key_impl()
-          :_key(nullptr)
-          {
-            init_openssl();
-          }
+          public_key_impl() : _key(nullptr) {}
 
           ~public_key_impl()
           {
@@ -35,11 +31,8 @@ namespace fc { namespace crypto { namespace r1 {
       class private_key_impl
       {
         public:
-          private_key_impl()
-          :_key(nullptr)
-          {
-            init_openssl();
-          }
+          private_key_impl() : _key(nullptr) {}
+
           ~private_key_impl()
           {
             if( _key != nullptr )
@@ -116,7 +109,7 @@ namespace fc { namespace crypto { namespace r1 {
         if (!BN_bin2bn(msg, msglen, e)) { ret=-1; goto err; }
         if (8*msglen > n) BN_rshift(e, e, 8-(n & 7));
         zero = BN_CTX_get(ctx);
-        if (!BN_zero(zero)) { ret=-1; goto err; }
+        BN_zero(zero);
         if (!BN_mod_sub(e, zero, e, order, ctx)) { ret=-1; goto err; }
         rr = BN_CTX_get(ctx);
         if (!BN_mod_inverse(rr, r, order, ctx)) { ret=-1; goto err; }
