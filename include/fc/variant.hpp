@@ -310,6 +310,7 @@ namespace fc
         /// @pre is_array()
         size_t                      size()const;
 
+        size_t                      estimated_size()const;
         /**
          *  _types that use non-intrusive variant conversion can implement the
          *  following method to implement conversion from variant to T.

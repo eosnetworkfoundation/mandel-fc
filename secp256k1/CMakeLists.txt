@@ -1,44 +1,40 @@
-set(GMP_USAGES "On;Auto;Off")
-set(GMP_USAGE "On" CACHE STRING "libgmp usage: On: required; Auto: used if present; Off: not used")
-set_property(CACHE GMP_USAGE PROPERTY STRINGS ${GMP_USAGES})
+#the secp256k1-internal INTERFACE library is used to define some include paths & compile defs that are needed not just
+# for compiling the library (where PRIVATE would have been fine), but also for the unit tests.
+add_library(secp256k1-internal INTERFACE)
 
-if(NOT GMP_USAGE IN_LIST GMP_USAGES)
-   message(FATAL_ERROR "GMP_USAGE must be set to one of: ${GMP_USAGES}")
-endif()
+target_include_directories(secp256k1-internal
+    INTERFACE
+        secp256k1/src
+        config
+)
 
-if(GMP_USAGE STREQUAL "On")
-   find_package(GMP REQUIRED)
-elseif(GMP_USAGE)
-   find_package(GMP)
-endif()
-
-if(GMP_FOUND)
-   set(SECP256K1_CONFIG_INC_DIR "${CMAKE_CURRENT_SOURCE_DIR}/config_with_gmp")
-else()
-   set(SECP256K1_CONFIG_INC_DIR "${CMAKE_CURRENT_SOURCE_DIR}/config_without_gmp")
-   unset(GMP_INCLUDE_DIR CACHE)
-   unset(GMP_LIBRARIES CACHE)
-endif()
+target_compile_definitions(secp256k1-internal INTERFACE HAVE_CONFIG_H)
 
 add_library(secp256k1 STATIC
-  upstream/src/secp256k1.c
+  secp256k1/src/secp256k1.c secp256k1/src/precomputed_ecmult.c secp256k1/src/precomputed_ecmult_gen.c
 )
 
 target_include_directories(secp256k1
     PUBLIC
-        ${CMAKE_CURRENT_SOURCE_DIR}/upstream/
-        ${CMAKE_CURRENT_SOURCE_DIR}/upstream/include
-    PRIVATE
-        ${CMAKE_CURRENT_SOURCE_DIR}/upstream/src
-        ${SECP256K1_CONFIG_INC_DIR}
-        ${GMP_INCLUDE_DIR}
+        secp256k1
+        secp256k1/include
 )
 
-target_compile_definitions(secp256k1 PRIVATE HAVE_CONFIG_H=1)
+target_link_libraries(secp256k1 PRIVATE secp256k1-internal)
 
-target_link_libraries(secp256k1 ${GMP_LIBRARIES})
 install( TARGETS secp256k1 
    RUNTIME DESTINATION ${CMAKE_INSTALL_FULL_BINDIR}
    LIBRARY DESTINATION ${CMAKE_INSTALL_FULL_LIBDIR}
    ARCHIVE DESTINATION ${CMAKE_INSTALL_FULL_LIBDIR}
 )
+
+add_executable(secp256k1-bench secp256k1/src/bench.c)
+target_link_libraries(secp256k1-bench secp256k1 secp256k1-internal)
+
+add_executable(secp256k1-tests secp256k1/src/tests.c)
+target_link_libraries(secp256k1-tests secp256k1 secp256k1-internal)
+add_test(secp256k1-tests secp256k1-tests)
+
+add_executable(secp256k1-exhaustive-tests secp256k1/src/tests_exhaustive.c)
+target_link_libraries(secp256k1-exhaustive-tests secp256k1 secp256k1-internal)
+add_test(secp256k1-exhaustive-tests secp256k1-exhaustive-tests)
