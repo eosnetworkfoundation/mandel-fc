@@ -1,15 +1,21 @@
 #include <fc/compress/zlib.hpp>
 
-#include "miniz.c"
+#include <boost/iostreams/filtering_stream.hpp>
+#include <boost/iostreams/device/back_inserter.hpp>
+#include <boost/iostreams/filter/zlib.hpp>
+
+namespace bio = boost::iostreams;
 
 namespace fc
 {
   string zlib_compress(const string& in)
   {
-    size_t compressed_message_length;
-    char* compressed_message = (char*)tdefl_compress_mem_to_heap(in.c_str(), in.size(), &compressed_message_length,  TDEFL_WRITE_ZLIB_HEADER | TDEFL_DEFAULT_MAX_PROBES);
-    string result(compressed_message, compressed_message_length);
-    free(compressed_message);
-    return result;
+    string out;
+    bio::filtering_ostream comp;
+    comp.push(bio::zlib_compressor(bio::zlib::best_compression));
+    comp.push(bio::back_inserter(out));
+    bio::write(comp, in.data(), in.size());
+    bio::close(comp);
+    return out;
   }
 }

@@ -190,16 +190,6 @@ namespace fc
           json::output_formatting::legacy_generator); // GELF 1.1 specifies unstringified numbers
     gelf_message_as_string = zlib_compress(gelf_message_as_string);
 
-    // graylog2 expects the zlib header to be 0x78 0x9c
-    // but miniz.c generates 0x78 0x01 (indicating
-    // low compression instead of default compression)
-    // so change that here
-    FC_ASSERT(gelf_message_as_string[0] == (char)0x78);
-    if (gelf_message_as_string[1] == (char)0x01 ||
-        gelf_message_as_string[1] == (char)0xda)
-      gelf_message_as_string[1] = (char)0x9c;
-    FC_ASSERT(gelf_message_as_string[1] == (char)0x9c);
-
     // packets are sent by UDP, and they tend to disappear if they
     // get too large.  It's hard to find any solid numbers on how
     // large they can be before they get dropped -- datagrams can
