@@ -26,6 +26,19 @@ namespace fc
     }
   }
 
+  const std::vector<std::string> gelf_appender::config::reserved_field_names  = {
+      "_id",            // per GELF specification
+      "_timestamp_ns",  // Remaining names all populated by appender
+      "_log_id",
+      "_line",
+      "_file",
+      "_method_name",
+      "_thread_name",
+      "_task_name"
+   };
+
+   const std::regex gelf_appender::config::user_field_name_pattern{"^_[\\w\\.\\-]*$"}; // per GELF specification
+
   class gelf_appender::impl
   {
   public:
@@ -33,9 +46,29 @@ namespace fc
     std::optional<boost::asio::ip::udp::endpoint>  gelf_endpoint;
     udp_socket                                     gelf_socket;
 
-    impl(const config& c) :
-      cfg(c)
+    impl(const variant& c)
     {
+      mutable_variant_object mvo;
+      from_variant(c, mvo);
+
+      cfg.endpoint = mvo["endpoint"].as<std::string>();
+      mvo.erase("endpoint");
+      cfg.host = mvo["host"].as<std::string>();
+      mvo.erase("host");
+      cfg.user_fields = mvo;
+
+      for(auto&& field_name : config::reserved_field_names) {
+         if (cfg.user_fields.contains(field_name.c_str())) {
+            FC_THROW_EXCEPTION(invalid_arg_exception, "Field name '${field_name}' is reserved",
+                               ("field_name", field_name));
+         }
+      }
+      for(auto&& field : cfg.user_fields) {
+         if (!std::regex_match(field.key(), config::user_field_name_pattern)) {
+            FC_THROW_EXCEPTION(invalid_arg_exception, "Field name '${field_name} must begin with an underscore and contain only letters, numbers, underscores, dashes, and dots.",
+                               ("field_name", field.key()));
+         }
+      }
     }
 
     ~impl()
@@ -44,7 +77,7 @@ namespace fc
   };
 
   gelf_appender::gelf_appender(const variant& args) :
-    my(new impl(args.as<config>()))
+    my(new impl(args))
   {
   }
 
@@ -148,10 +181,13 @@ namespace fc
     if (!context.get_task_name().empty())
       gelf_message["_task_name"] = context.get_task_name();
 
+    for(auto&& field : my->cfg.user_fields) {
+      gelf_message[field.key()] = field.value();
+    }
+
     string gelf_message_as_string = json::to_string(gelf_message,
           fc::time_point::now() + fc::exception::format_time_limit,
           json::output_formatting::legacy_generator); // GELF 1.1 specifies unstringified numbers
-    //unsigned uncompressed_size = gelf_message_as_string.size();
     gelf_message_as_string = zlib_compress(gelf_message_as_string);
 
     // graylog2 expects the zlib header to be 0x78 0x9c
