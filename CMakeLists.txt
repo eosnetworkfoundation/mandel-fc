@@ -30,6 +30,7 @@ if(FC_INSTALL_COMPONENT)
 endif()
 
 add_subdirectory( secp256k1 )
+add_subdirectory( libraries/ff )
 
 IF( ECC_IMPL STREQUAL openssl )
   SET( ECC_REST src/crypto/elliptic_impl_pub.cpp )
@@ -106,6 +107,7 @@ set( fc_sources
      src/crypto/public_key.cpp
      src/crypto/private_key.cpp
      src/crypto/signature.cpp
+     src/crypto/alt_bn128.cpp
      src/network/ip.cpp
      src/network/platform_root_ca.cpp
      src/network/resolve.cpp
@@ -173,6 +175,7 @@ target_include_directories(fc
   PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include
     ${OPENSSL_INCLUDE_DIR}
     ${CMAKE_CURRENT_SOURCE_DIR}/vendor/websocketpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/libraries/ff
   )
 
 # try and make this very clear that this json parser is intended only for webauthn parsing..
@@ -194,7 +197,7 @@ IF(APPLE)
   find_library(security_framework Security)
   find_library(corefoundation_framework CoreFoundation)
 ENDIF()
-target_link_libraries( fc PUBLIC ${LINK_USR_LOCAL_LIB}
+target_link_libraries( fc PUBLIC ff ${LINK_USR_LOCAL_LIB}
                                  Boost::date_time Boost::filesystem Boost::chrono Boost::iostreams Threads::Threads
                                  ${OPENSSL_LIBRARIES} ${ZLIB_LIBRARIES} ${PLATFORM_SPECIFIC_LIBS} ${RPCRT4} ${CMAKE_DL_LIBS} ${readline_libraries} ${ECC_LIB} ${security_framework} ${corefoundation_framework} )
 
