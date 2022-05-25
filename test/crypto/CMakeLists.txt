@@ -10,7 +10,11 @@ target_link_libraries( test_hash_functions fc )
 add_executable( test_alt_bn128 test_alt_bn128.cpp )
 target_link_libraries( test_alt_bn128 fc )
 
+add_executable( test_modular_arithmetic test_modular_arithmetic.cpp )
+target_link_libraries( test_modular_arithmetic fc )
+
 add_test(NAME test_cypher_suites COMMAND libraries/fc/test/crypto/test_cypher_suites WORKING_DIRECTORY ${CMAKE_BINARY_DIR})
 add_test(NAME test_webauthn COMMAND libraries/fc/test/crypto/test_webauthn WORKING_DIRECTORY ${CMAKE_BINARY_DIR})
 add_test(NAME test_hash_functions COMMAND libraries/fc/test/crypto/test_hash_functions WORKING_DIRECTORY ${CMAKE_BINARY_DIR})
 add_test(NAME test_alt_bn128 COMMAND libraries/fc/test/crypto/test_alt_bn128 WORKING_DIRECTORY ${CMAKE_BINARY_DIR})
+add_test(NAME test_modular_arithmetic COMMAND libraries/fc/test/crypto/test_modular_arithmetic WORKING_DIRECTORY ${CMAKE_BINARY_DIR})
