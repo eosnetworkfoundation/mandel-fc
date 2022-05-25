@@ -111,6 +111,7 @@ set( fc_sources
      src/crypto/alt_bn128.cpp
      src/crypto/modular_arithmetic.cpp
      src/crypto/blake2.cpp
+     src/crypto/ecrecover.cpp
      src/network/ip.cpp
      src/network/platform_root_ca.cpp
      src/network/resolve.cpp
