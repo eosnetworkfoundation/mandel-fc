@@ -180,7 +180,7 @@ namespace fc {
     
     static constexpr size_t kSnarkvStride{192};
 
-    std::pair<alt_bn128_error, bool>  alt_bn128_pair(const bytes& g1_g2_pairs) {
+    std::pair<alt_bn128_error, bool>  alt_bn128_pair(const bytes& g1_g2_pairs, const yield_function_t& yield) {
         if (g1_g2_pairs.size() % kSnarkvStride != 0) {
             return std::make_pair(alt_bn128_error::pairing_list_size_error, false);
         }
@@ -211,6 +211,7 @@ namespace fc {
             }
 
             accumulator = accumulator * alt_bn128_miller_loop(alt_bn128_precompute_G1(a.second), alt_bn128_precompute_G2(b.second));
+            yield();
         }
 
         bool pair_result = false;

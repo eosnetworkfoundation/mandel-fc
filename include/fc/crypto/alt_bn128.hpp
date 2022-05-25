@@ -4,6 +4,7 @@
 #include <cstdint>
 #include <utility>
 #include <vector>
+#include <fc/utility.hpp>
 
 namespace fc {
     using bytes = std::vector<char>;
@@ -21,6 +22,6 @@ namespace fc {
 
     std::pair<alt_bn128_error, bytes> alt_bn128_add(const bytes& op1, const bytes& op2); 
     std::pair<alt_bn128_error, bytes> alt_bn128_mul(const bytes& g1_point, const bytes& scalar);
-    std::pair<alt_bn128_error, bool>  alt_bn128_pair(const bytes& g1_g2_pairs);
+    std::pair<alt_bn128_error, bool>  alt_bn128_pair(const bytes& g1_g2_pairs, const yield_function_t& yield);
 
 } // fc

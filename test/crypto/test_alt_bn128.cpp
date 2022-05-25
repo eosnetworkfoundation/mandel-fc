@@ -268,6 +268,8 @@ BOOST_AUTO_TEST_CASE(pair) try {
         buffer.insert( buffer.end(), res.begin(), res.end());
     };
 
+    yield_function_t yield = [](){};
+
     for(const auto& test : tests) {
         const auto& pairs               = std::get<0>(test);
         const auto& expected_error      = std::get<1>(test);
@@ -284,7 +286,7 @@ BOOST_AUTO_TEST_CASE(pair) try {
             concat(pair[5], g1_g2_pairs);
         }
 
-        auto res = alt_bn128_pair(g1_g2_pairs);
+        auto res = alt_bn128_pair(g1_g2_pairs, yield);
         BOOST_CHECK_EQUAL(res.first, expected_error);
         BOOST_CHECK_EQUAL(res.second, expected_pair_check);
     }
