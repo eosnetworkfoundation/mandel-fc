@@ -30,6 +30,8 @@ if(FC_INSTALL_COMPONENT)
 endif()
 
 add_subdirectory( secp256k1 )
+
+SET( WITH_PROCPS OFF CACHE BOOL "" FORCE)
 add_subdirectory( libraries/ff )
 
 IF( ECC_IMPL STREQUAL openssl )
