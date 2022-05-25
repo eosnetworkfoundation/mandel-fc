@@ -7,3 +7,6 @@
 [submodule "libraries/ff"]
 	path = libraries/ff
 	url = https://github.com/scipr-lab/libff
+[submodule "libraries/SHA3IUF"]
+	path = libraries/SHA3IUF
+	url = https://github.com/brainhub/SHA3IUF
