@@ -12,7 +12,7 @@ namespace fc
   {
     string out;
     bio::filtering_ostream comp;
-    comp.push(bio::zlib_compressor(bio::zlib::best_compression));
+    comp.push(bio::zlib_compressor(bio::zlib::default_compression));
     comp.push(bio::back_inserter(out));
     bio::write(comp, in.data(), in.size());
     bio::close(comp);
