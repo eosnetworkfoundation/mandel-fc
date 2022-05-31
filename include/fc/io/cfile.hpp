@@ -4,6 +4,10 @@
 #include <cstdio>
 #include <ios>
 
+#ifdef __APPLE__
+#include <fcntl.h>
+#endif
+
 #ifndef _WIN32
 #define FC_FOPEN(p, m) fopen(p, m)
 #else
@@ -136,6 +140,12 @@ public:
          throw std::ios_base::failure( "cfile: " + _file_path.generic_string() +
                                        " unable to sync file, error: " + std::to_string( errno ) );
       }
+#ifdef __APPLE__
+      if( -1 == fcntl( fd, F_FULLFSYNC ) ) {
+         throw std::ios_base::failure( "cfile: " + _file_path.generic_string() +
+                                       " unable to F_FULLFSYNC file, error: " + std::to_string( errno ) );
+      }
+#endif
    }
 
    bool eof() const { return feof(_file.get()) != 0; }
