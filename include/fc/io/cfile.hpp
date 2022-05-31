@@ -40,6 +40,16 @@ public:
 
    bool is_open() const { return _open; }
 
+   auto fileno() const {
+      int fd = ::fileno(_file.get());
+      if( -1 == fd ) {
+         throw std::ios_base::failure( "cfile: " + _file_path.generic_string() +
+                                       " unable to convert file pointer to file descriptor, error: " +
+                                       std::to_string( errno ) );
+      }
+      return fd;
+   }
+
    static constexpr const char* create_or_update_rw_mode = "ab+";
    static constexpr const char* update_rw_mode = "rb+";
    static constexpr const char* truncate_rw_mode = "wb+";
@@ -121,12 +131,7 @@ public:
    }
 
    void sync() {
-      const int fd = fileno(_file.get() );
-      if( -1 == fd ) {
-         throw std::ios_base::failure( "cfile: " + _file_path.generic_string() +
-                                       " unable to convert file pointer to file descriptor, error: " +
-                                       std::to_string( errno ) );
-      }
+      const int fd = fileno();
       if( -1 == fsync( fd ) ) {
          throw std::ios_base::failure( "cfile: " + _file_path.generic_string() +
                                        " unable to sync file, error: " + std::to_string( errno ) );
