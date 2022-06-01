@@ -4,36 +4,30 @@
 
 namespace fc {
 
-    std::pair<modular_arithmetic_error, bytes> modexp(const bytes& _base, const bytes& _exponent, const bytes& _modulus)
+    std::variant<modular_arithmetic_error, bytes> modexp(const bytes& _base, const bytes& _exponent, const bytes& _modulus)
     {
         if (_modulus.size() == 0) {
-            return std::make_pair(modular_arithmetic_error::modulus_len_zero, bytes{});
+            return modular_arithmetic_error::modulus_len_zero;
         }
 
         auto output = bytes(_modulus.size(), '\0');
 
-        mpz_t base;
-        mpz_init(base);
+        mpz_t base, exponent, modulus;
+        mpz_inits(base, exponent, modulus, nullptr);
+
         if (_base.size()) {
             mpz_import(base, _base.size(), 1, 1, 0, 0, _base.data());
         }
 
-        mpz_t exponent;
-        mpz_init(exponent);
         if (_exponent.size()) {
             mpz_import(exponent, _exponent.size(), 1, 1, 0, 0, _exponent.data());
         }
 
-        mpz_t modulus;
-        mpz_init(modulus);
         mpz_import(modulus, _modulus.size(), 1, 1, 0, 0, _modulus.data());
 
         if (mpz_sgn(modulus) == 0) {
-            mpz_clear(modulus);
-            mpz_clear(exponent);
-            mpz_clear(base);
-
-            return std::make_pair(modular_arithmetic_error::none, output);
+            mpz_clears(base, exponent, modulus, nullptr);
+            return output;
         }
 
         mpz_t result;
@@ -45,12 +39,9 @@ namespace fc {
         // and convert to big-endian
         std::reverse(output.begin(), output.end());
 
-        mpz_clear(result);
-        mpz_clear(modulus);
-        mpz_clear(exponent);
-        mpz_clear(base);
+        mpz_clears(base, exponent, modulus, result, nullptr);
 
-        return std::make_pair(modular_arithmetic_error::none, output);
+        return output;
     }
 
 }

@@ -10,9 +10,12 @@ using namespace fc;
 #include "test_utils.hpp"
 
 namespace std {
-std::ostream& operator<<(std::ostream& st, modular_arithmetic_error err)
+std::ostream& operator<<(std::ostream& st, const std::variant<fc::modular_arithmetic_error, bytes>& err)
 {
-    st << static_cast<int32_t>(err);
+    if(std::holds_alternative<fc::modular_arithmetic_error>(err))
+        st << static_cast<int32_t>(std::get<fc::modular_arithmetic_error>(err));
+    else
+        st << fc::to_hex(std::get<bytes>(err));
     return st;
 }
 }
@@ -22,7 +25,7 @@ BOOST_AUTO_TEST_SUITE(modular_arithmetic)
 BOOST_AUTO_TEST_CASE(modexp) try {
 
 
-    using modexp_test = std::tuple<std::vector<string>, fc::modular_arithmetic_error, std::string>;
+    using modexp_test = std::tuple<std::vector<string>, std::variant<fc::modular_arithmetic_error, bytes>>;
 
     const std::vector<modexp_test> tests {
         //test1
@@ -32,8 +35,7 @@ BOOST_AUTO_TEST_CASE(modexp) try {
                 "fffffffffffffffffffffffffffffffffffffffffffffffffffffffefffffc2e",
                 "fffffffffffffffffffffffffffffffffffffffffffffffffffffffefffffc2f",
             },
-            modular_arithmetic_error::none,
-            "0000000000000000000000000000000000000000000000000000000000000001",
+            to_bytes("0000000000000000000000000000000000000000000000000000000000000001"),
         },
 
         //test2
@@ -43,8 +45,7 @@ BOOST_AUTO_TEST_CASE(modexp) try {
                 "fffffffffffffffffffffffffffffffffffffffffffffffffffffffefffffc2e",
                 "fffffffffffffffffffffffffffffffffffffffffffffffffffffffefffffc2f",
             },
-            modular_arithmetic_error::none,
-            "0000000000000000000000000000000000000000000000000000000000000000",
+            to_bytes("0000000000000000000000000000000000000000000000000000000000000000")
         },
 
         //test3
@@ -54,8 +55,7 @@ BOOST_AUTO_TEST_CASE(modexp) try {
                 "fffffffffffffffffffffffffffffffffffffffffffffffffffffffefffffc2e",
                 "",
             },
-            modular_arithmetic_error::modulus_len_zero,
-            "",
+            modular_arithmetic_error::modulus_len_zero
         },
 
 
@@ -63,16 +63,14 @@ BOOST_AUTO_TEST_CASE(modexp) try {
 
     for(const auto& test : tests) {
         const auto& parts           = std::get<0>(test);
-        const auto& expected_error  = std::get<1>(test);
-        const auto& expected_result = std::get<2>(test);
+        const auto& expected_result = std::get<1>(test);
 
         auto base = to_bytes(parts[0]);
         auto exponent = to_bytes(parts[1]);
         auto modulus = to_bytes(parts[2]);
 
         auto res = fc::modexp(base, exponent, modulus);
-        BOOST_CHECK_EQUAL(res.first, expected_error);
-        BOOST_CHECK_EQUAL(fc::to_hex(res.second.data(), res.second.size()), expected_result);
+        BOOST_CHECK_EQUAL(res, expected_result);
     }
 
 } FC_LOG_AND_RETHROW();
