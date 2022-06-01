@@ -4,7 +4,7 @@
 
 #include <functional>
 #include <cstdint>
-#include <utility>
+#include <variant>
 #include <vector>
 #include <fc/utility.hpp>
 
@@ -12,11 +12,10 @@ namespace fc {
     using bytes = std::vector<char>;
 
     enum class blake2b_error : int32_t {
-        none = 0,
         input_len_error
     };
 
-    std::pair<blake2b_error, bytes> blake2b(uint32_t _rounds, const bytes& _h, const bytes& _m, const bytes& _t0_offset, const bytes& _t1_offset, bool _f, const yield_function_t& yield);
+    std::variant<blake2b_error, bytes> blake2b(uint32_t _rounds, const bytes& _h, const bytes& _m, const bytes& _t0_offset, const bytes& _t1_offset, bool _f, const yield_function_t& yield);
 
     typedef struct blake2b_state__ {
         uint64_t h[8];

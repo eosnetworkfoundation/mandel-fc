@@ -102,23 +102,22 @@ void blake2b_wrapper::blake2b_compress_end(blake2b_state *S) {
     }
 }
 
-std::pair<blake2b_error, bytes> blake2b(uint32_t _rounds, const bytes& _h, const bytes& _m, const bytes& _t0_offset, const bytes& _t1_offset, bool _f, const yield_function_t& yield) {
-    blake2b_wrapper b2wrapper;
-    blake2b_state state{};
-    bytes out(sizeof(state.h), 0);
+std::variant<blake2b_error, bytes> blake2b(uint32_t _rounds, const bytes& _h, const bytes& _m, const bytes& _t0_offset, const bytes& _t1_offset, bool _f, const yield_function_t& yield) {
 
     //  EIP-152 [4 bytes for rounds][64 bytes for h][128 bytes for m][8 bytes for t_0][8 bytes for t_1][1 byte for f] : 213
     //          [------------------][64 bytes for h][128 bytes for m][8 bytes for t_0][8 bytes for t_1][------------] : 208
     //  * rounds and final indicator flag are not serialized
-    if (_h.size() != 64 || _m.size() != 128 || _t0_offset.size() != 8 || _t1_offset.size() != 8) {
-        return std::make_pair(blake2b_error::input_len_error, out);
+    if (_h.size() != 64 || _m.size() != blake2b_wrapper::BLAKE2B_BLOCKBYTES || _t0_offset.size() != 8 || _t1_offset.size() != 8) {
+        return blake2b_error::input_len_error;
     }
-
-    memset(&state, 0, sizeof(blake2b_state));
+    
+    blake2b_wrapper b2wrapper;
+    blake2b_state state{};
+    
     memcpy(state.h, _h.data(), 64);
 
     // final indicator flag set words to 1's if true
-    state.f[0] = _f?std::numeric_limits<uint64_t>::max():0;
+    state.f[0] = _f ? std::numeric_limits<uint64_t>::max() : 0;
 
     memcpy(&state.t[0], _t0_offset.data(), 8);
     memcpy(&state.t[1], _t1_offset.data(), 8);
@@ -128,9 +127,9 @@ std::pair<blake2b_error, bytes> blake2b(uint32_t _rounds, const bytes& _h, const
     
     b2wrapper.blake2b_compress(&state, block, _rounds, yield);
 
+    bytes out(sizeof(state.h), 0);
     memcpy(&out[0], &state.h[0], out.size());
-
-    return std::make_pair(blake2b_error::none, out);
+    return out;
 }
 
 }
