@@ -18,6 +18,8 @@
 
 #include <fc/crypto/blake2.hpp>
 
+namespace fc {
+
 static const uint64_t blake2b_IV[8] = {0x6a09e667f3bcc908ULL, 0xbb67ae8584caa73bULL, 0x3c6ef372fe94f82bULL,
                                        0xa54ff53a5f1d36f1ULL, 0x510e527fade682d1ULL, 0x9b05688c2b3e6c1fULL,
                                        0x1f83d9abfb41bd6bULL, 0x5be0cd19137e2179ULL};
@@ -38,31 +40,29 @@ static inline uint64_t load64(const void *src) {
 
 static inline uint64_t rotr64(const uint64_t w, const unsigned c) { return (w >> c) | (w << (64 - c)); }
 
-#define G(r, i, a, b, c, d)                         \
-    do {                                            \
-        a = a + b + m[blake2b_sigma[r][2 * i + 0]]; \
-        d = rotr64(d ^ a, 32);                      \
-        c = c + d;                                  \
-        b = rotr64(b ^ c, 24);                      \
-        a = a + b + m[blake2b_sigma[r][2 * i + 1]]; \
-        d = rotr64(d ^ a, 16);                      \
-        c = c + d;                                  \
-        b = rotr64(b ^ c, 63);                      \
-    } while (0)
+inline void blake2b_wrapper::G(uint8_t r, uint8_t i, uint64_t& a, uint64_t& b, uint64_t& c, uint64_t& d) noexcept
+{
+    a = a + b + m[blake2b_sigma[r][2 * i + 0]];
+    d = rotr64(d ^ a, 32);
+    c = c + d;
+    b = rotr64(b ^ c, 24);
+    a = a + b + m[blake2b_sigma[r][2 * i + 1]];
+    d = rotr64(d ^ a, 16);
+    c = c + d;
+    b = rotr64(b ^ c, 63);
+}
 
-#define ROUND(r)                           \
-    do {                                   \
-        G(r, 0, v[0], v[4], v[8], v[12]);  \
-        G(r, 1, v[1], v[5], v[9], v[13]);  \
-        G(r, 2, v[2], v[6], v[10], v[14]); \
-        G(r, 3, v[3], v[7], v[11], v[15]); \
-        G(r, 4, v[0], v[5], v[10], v[15]); \
-        G(r, 5, v[1], v[6], v[11], v[12]); \
-        G(r, 6, v[2], v[7], v[8], v[13]);  \
-        G(r, 7, v[3], v[4], v[9], v[14]);  \
-    } while (0)
-
-namespace fc {
+inline void blake2b_wrapper::ROUND(uint8_t r) noexcept
+{
+    G(r, 0, v[0], v[4], v[8], v[12]);
+    G(r, 1, v[1], v[5], v[9], v[13]);
+    G(r, 2, v[2], v[6], v[10], v[14]);
+    G(r, 3, v[3], v[7], v[11], v[15]);
+    G(r, 4, v[0], v[5], v[10], v[15]);
+    G(r, 5, v[1], v[6], v[11], v[12]);
+    G(r, 6, v[2], v[7], v[8], v[13]);
+    G(r, 7, v[3], v[4], v[9], v[14]);
+}
 
 void blake2b_wrapper::blake2b_compress(blake2b_state *S, const uint8_t block[BLAKE2B_BLOCKBYTES], size_t r, const yield_function_t& yield) {
     blake2b_compress_init(S, block, r);
@@ -93,7 +93,7 @@ void blake2b_wrapper::blake2b_compress_init(blake2b_state *S, const uint8_t bloc
     v[12] = blake2b_IV[4] ^ S->t[0];
     v[13] = blake2b_IV[5] ^ S->t[1];
     v[14] = blake2b_IV[6] ^ S->f[0];
-    v[15] = blake2b_IV[7] ^ S->f[1];
+    v[15] = blake2b_IV[7];
 }
 
 void blake2b_wrapper::blake2b_compress_end(blake2b_state *S) {
