@@ -124,7 +124,6 @@ set( fc_sources
      src/compress/zlib.cpp
      src/log/gelf_appender.cpp
      src/log/zipkin.cpp
-     libraries/SHA3IUF/sha3.c
      )
 
 file( GLOB_RECURSE fc_headers ${CMAKE_CURRENT_SOURCE_DIR} *.hpp *.h )
@@ -183,7 +182,6 @@ target_include_directories(fc
     ${OPENSSL_INCLUDE_DIR}
     ${CMAKE_CURRENT_SOURCE_DIR}/vendor/websocketpp
     ${CMAKE_CURRENT_SOURCE_DIR}/libraries/ff
-    ${CMAKE_CURRENT_SOURCE_DIR}/libraries/SHA3IUF
   )
 
 # try and make this very clear that this json parser is intended only for webauthn parsing..
