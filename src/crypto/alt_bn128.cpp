@@ -39,38 +39,35 @@ namespace fc {
         return mpn_cmp(x.data, libff::alt_bn128_modulus_q.data, libff::alt_bn128_q_limbs) < 0;
     }
 
-    std::pair<alt_bn128_error, libff::alt_bn128_G1> decode_g1_element(const bytes& bytes64_be) noexcept {
+    std::variant<alt_bn128_error, libff::alt_bn128_G1> decode_g1_element(const bytes& bytes64_be) noexcept {
         if(bytes64_be.size() != 64) {
-            return std::make_pair(alt_bn128_error::input_len_error, libff::alt_bn128_G1::zero());
+            return alt_bn128_error::input_len_error;
         }
     
         bytes sub1(bytes64_be.begin(), bytes64_be.begin()+32);
         bytes sub2(bytes64_be.begin()+32, bytes64_be.begin()+64);
 
         Scalar x{to_scalar(sub1)};
-        if (!valid_element_of_fp(x)) {
-            return std::make_pair(alt_bn128_error::operand_component_invalid, libff::alt_bn128_G1::zero());
-        }
-
         Scalar y{to_scalar(sub2)};
-        if (!valid_element_of_fp(y)) {
-            return std::make_pair(alt_bn128_error::operand_component_invalid, libff::alt_bn128_G1::zero());
+
+        if (!valid_element_of_fp(x) || !valid_element_of_fp(y)) {
+            return alt_bn128_error::operand_component_invalid;
         }
 
         if (x.is_zero() && y.is_zero()) {
-            return std::make_pair(alt_bn128_error::operand_at_origin, libff::alt_bn128_G1::zero());
+            return alt_bn128_error::operand_at_origin;
         }
 
         libff::alt_bn128_G1 point{x, y, libff::alt_bn128_Fq::one()};
         if (!point.is_well_formed()) {
-            return std::make_pair(alt_bn128_error::operand_not_in_curve, libff::alt_bn128_G1::zero());
+            return alt_bn128_error::operand_not_in_curve;
         }
-        return std::make_pair(alt_bn128_error::none, point);
+        return point;
     }
 
-    std::pair<alt_bn128_error, libff::alt_bn128_Fq2> decode_fp2_element(const bytes& bytes64_be) noexcept {
+    std::variant<alt_bn128_error, libff::alt_bn128_Fq2> decode_fp2_element(const bytes& bytes64_be) noexcept {
         if(bytes64_be.size() != 64) {
-            return std::make_pair(alt_bn128_error::input_len_error, libff::alt_bn128_Fq2{});
+            return alt_bn128_error::input_len_error;
         }
 
         // big-endian encoding
@@ -81,43 +78,44 @@ namespace fc {
         Scalar c1{to_scalar(sub2)};
 
         if (!valid_element_of_fp(c0) || !valid_element_of_fp(c1)) {
-            return std::make_pair(alt_bn128_error::operand_component_invalid, libff::alt_bn128_Fq2::one() );
+            return alt_bn128_error::operand_component_invalid;
         }
 
-        return std::make_pair(alt_bn128_error::none, libff::alt_bn128_Fq2{c0, c1});
+        return libff::alt_bn128_Fq2{c0, c1};
     }
 
-    std::pair<alt_bn128_error, libff::alt_bn128_G2> decode_g2_element(const bytes& bytes128_be) noexcept {
-        assert(bytes128_be.size() == 128);
+    std::variant<alt_bn128_error, libff::alt_bn128_G2> decode_g2_element(const bytes& bytes128_be) noexcept {
 
         bytes sub1(bytes128_be.begin(), bytes128_be.begin()+64);        
-        auto x = decode_fp2_element(sub1);
-        if (x.first != alt_bn128_error::none) {
-            return std::make_pair(x.first, libff::alt_bn128_G2::zero());
+        auto maybe_x = decode_fp2_element(sub1);
+        if (std::holds_alternative<alt_bn128_error>(maybe_x)) {
+            return std::get<alt_bn128_error>(maybe_x);
         }
 
         bytes sub2(bytes128_be.begin()+64, bytes128_be.begin()+128);        
-        auto y = decode_fp2_element(sub2);
-        
-        if (y.first != alt_bn128_error::none) {
-            return std::make_pair(y.first, libff::alt_bn128_G2::zero());
+        auto maybe_y = decode_fp2_element(sub2);
+        if (std::holds_alternative<alt_bn128_error>(maybe_y)) {
+            return std::get<alt_bn128_error>(maybe_y);
         }
 
-        if (x.second.is_zero() && y.second.is_zero()) {
-            return std::make_pair(alt_bn128_error::operand_at_origin, libff::alt_bn128_G2::zero());
+        const auto& x = std::get<libff::alt_bn128_Fq2>(maybe_x);
+        const auto& y = std::get<libff::alt_bn128_Fq2>(maybe_y);
+
+        if (x.is_zero() && y.is_zero()) {
+            return alt_bn128_error::operand_at_origin;
         }
 
-        libff::alt_bn128_G2 point{x.second, y.second, libff::alt_bn128_Fq2::one()};
+        libff::alt_bn128_G2 point{x, y, libff::alt_bn128_Fq2::one()};
         if (!point.is_well_formed()) {
-            return std::make_pair(alt_bn128_error::operand_not_in_curve, libff::alt_bn128_G2::zero());;
+            return alt_bn128_error::operand_not_in_curve;
         }
 
         if (!(libff::alt_bn128_G2::order() * point).is_zero()) {
             // wrong order, doesn't belong to the subgroup G2
-            return std::make_pair(alt_bn128_error::operand_outside_g2, libff::alt_bn128_G2::zero());;
+            return alt_bn128_error::operand_outside_g2;
         }
 
-        return std::make_pair(alt_bn128_error::none, point);
+        return point;
     }
 
     bytes encode_g1_element(libff::alt_bn128_G1 p) noexcept {
@@ -138,51 +136,51 @@ namespace fc {
         return out;
     }
 
-    std::pair<alt_bn128_error, bytes> alt_bn128_add(const bytes& op1, const bytes& op2) {
+    std::variant<alt_bn128_error, bytes> alt_bn128_add(const bytes& op1, const bytes& op2) {
         fc::initLibSnark();
 
-        auto x = decode_g1_element(op1);
-
-        if (x.first != alt_bn128_error::none) {
-            return std::make_pair(x.first, bytes{});
+        auto maybe_x = decode_g1_element(op1);
+        if (std::holds_alternative<alt_bn128_error>(maybe_x)) {
+            return std::get<alt_bn128_error>(maybe_x);
         }
 
-        auto y = decode_g1_element(op2);
-
-        if (y.first != alt_bn128_error::none) {
-            return std::make_pair(y.first, bytes{});
+        auto maybe_y = decode_g1_element(op2);
+        if (std::holds_alternative<alt_bn128_error>(maybe_y)) {
+            return std::get<alt_bn128_error>(maybe_y);
         }
 
-        libff::alt_bn128_G1 g1Sum = x.second + y.second;
-        auto retEncoded = encode_g1_element(g1Sum);
-        return std::make_pair(alt_bn128_error::none, retEncoded);
+        const auto& x = std::get<libff::alt_bn128_G1>(maybe_x);
+        const auto& y = std::get<libff::alt_bn128_G1>(maybe_y);
+
+        libff::alt_bn128_G1 g1Sum = x + y;
+        return encode_g1_element(g1Sum);
     }
 
-    std::pair<alt_bn128_error, bytes> alt_bn128_mul(const bytes& g1_point, const bytes& scalar) {
+    std::variant<alt_bn128_error, bytes> alt_bn128_mul(const bytes& g1_point, const bytes& scalar) {
         initLibSnark();
 
-        auto x = decode_g1_element(g1_point);
-
-        if (x.first != alt_bn128_error::none) {
-            return std::make_pair(x.first, bytes{});
+        auto maybe_x = decode_g1_element(g1_point);
+        if (std::holds_alternative<alt_bn128_error>(maybe_x)) {
+            return std::get<alt_bn128_error>(maybe_x);
         }
 
+        auto& x = std::get<libff::alt_bn128_G1>(maybe_x);
+
         if(scalar.size() != 32) {
-            return std::make_pair(alt_bn128_error::invalid_scalar_size, bytes{});
+            return alt_bn128_error::invalid_scalar_size;
         }
 
         Scalar n{to_scalar(scalar)};
 
-        libff::alt_bn128_G1 g1Product = n * x.second;
-        auto retEncoded = encode_g1_element(g1Product);
-        return std::make_pair(alt_bn128_error::none, retEncoded);
+        libff::alt_bn128_G1 g1Product = n * x;
+        return encode_g1_element(g1Product);
     }
     
     static constexpr size_t kSnarkvStride{192};
 
-    std::pair<alt_bn128_error, bool>  alt_bn128_pair(const bytes& g1_g2_pairs, const yield_function_t& yield) {
+    std::variant<alt_bn128_error, bool>  alt_bn128_pair(const bytes& g1_g2_pairs, const yield_function_t& yield) {
         if (g1_g2_pairs.size() % kSnarkvStride != 0) {
-            return std::make_pair(alt_bn128_error::pairing_list_size_error, false);
+            return alt_bn128_error::pairing_list_size_error;
         }
 
         size_t k{g1_g2_pairs.size() / kSnarkvStride};
@@ -195,22 +193,27 @@ namespace fc {
 
         for (size_t i{0}; i < k; ++i) {
             auto offset = i * kSnarkvStride;
+
             bytes sub1(g1_g2_pairs.begin()+offset, g1_g2_pairs.begin()+offset+64);        
-            auto a = decode_g1_element(sub1);
-            if (a.first != alt_bn128_error::none) {
-                return std::make_pair(a.first, false);
-            }
-            bytes sub2(g1_g2_pairs.begin()+offset+64, g1_g2_pairs.begin()+offset+64+128);        
-            auto b = decode_g2_element(sub2);
-            if (b.first != alt_bn128_error::none) {
-                return std::make_pair(b.first, false);
+            auto maybe_a = decode_g1_element(sub1);
+            if (std::holds_alternative<alt_bn128_error>(maybe_a)) {
+                return std::get<alt_bn128_error>(maybe_a);
             }
 
-            if (a.second.is_zero() || b.second.is_zero()) {
+            bytes sub2(g1_g2_pairs.begin()+offset+64, g1_g2_pairs.begin()+offset+64+128);        
+            auto maybe_b = decode_g2_element(sub2);
+            if (std::holds_alternative<alt_bn128_error>(maybe_b)) {
+                return std::get<alt_bn128_error>(maybe_b);
+            }
+           
+            const auto& a = std::get<libff::alt_bn128_G1>(maybe_a);
+            const auto& b = std::get<libff::alt_bn128_G2>(maybe_b);
+
+            if (a.is_zero() || b.is_zero()) {
                 continue;
             }
 
-            accumulator = accumulator * alt_bn128_miller_loop(alt_bn128_precompute_G1(a.second), alt_bn128_precompute_G2(b.second));
+            accumulator = accumulator * alt_bn128_miller_loop(alt_bn128_precompute_G1(a), alt_bn128_precompute_G2(b));
             yield();
         }
 
@@ -219,6 +222,6 @@ namespace fc {
             pair_result = true;
         }
 
-        return std::make_pair(alt_bn128_error::none, pair_result);
+        return pair_result;
     }
 }
