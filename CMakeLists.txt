@@ -32,6 +32,8 @@ endif()
 add_subdirectory( secp256k1 )
 
 SET( WITH_PROCPS OFF CACHE BOOL "" FORCE)
+SET( CURVE "ALT_BN128" CACHE STRING "" FORCE)
+SET( USE_ASM OFF CACHE BOOL "" FORCE)
 add_subdirectory( libraries/ff )
 
 IF( ECC_IMPL STREQUAL openssl )
