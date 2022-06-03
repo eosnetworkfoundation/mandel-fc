@@ -13,9 +13,9 @@
    https://blake2.net.
 */
 
-#include <stdint.h>
-#include <string.h>
-
+#include <cstdint>
+#include <cstring>
+#include <limits>
 #include <fc/crypto/blake2.hpp>
 
 namespace fc {
