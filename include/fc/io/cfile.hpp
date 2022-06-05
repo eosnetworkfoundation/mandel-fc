@@ -3,10 +3,8 @@
 #include <fc/io/datastream.hpp>
 #include <cstdio>
 #include <ios>
-
-#ifdef __APPLE__
 #include <fcntl.h>
-#endif
+#include <sys/stat.h>
 
 #ifndef _WIN32
 #define FC_FOPEN(p, m) fopen(p, m)
@@ -67,6 +65,12 @@ public:
       if( !_file ) {
          throw std::ios_base::failure( "cfile unable to open: " +  _file_path.generic_string() + " in mode: " + std::string( mode ) );
       }
+#ifndef _WIN32
+      struct stat st;
+      _file_blk_size = 4096;
+      if( fstat(fileno(), &st) == 0 )
+         _file_blk_size = st.st_blksize;
+#endif
       _open = true;
    }
 
@@ -148,6 +152,40 @@ public:
 #endif
    }
 
+   //rounds to filesystem block boundaries; e.g. punch_hole(5000, 14000) when blocksz=4096 punches from 8192 to 12288
+   //end is not inclusive; eg punch_hole(4096, 8192) will punch 4096 bytes (assuming blocksz=4096)
+   void punch_hole(size_t begin, size_t end) {
+      if(begin % _file_blk_size) {
+         begin &= ~(_file_blk_size-1);
+         begin += _file_blk_size;
+      }
+      end &= ~(_file_blk_size-1);
+
+      if(begin >= end)
+         return;
+
+      int ret = 0;
+#if defined(__linux__)
+      ret = fallocate(fileno(), FALLOC_FL_PUNCH_HOLE|FALLOC_FL_KEEP_SIZE, begin, end-begin);
+#elif defined(__APPLE__)
+      struct fpunchhole puncher = {0, 0, begin, end-begin};
+      ret = fcntl(block_file.fileno(), F_PUNCHHOLE, &puncher);
+#endif
+      if(ret == -1)
+         wlog("Failed to punch hole in file ${f}: ${e}", ("f", _file_path)("e", strerror(errno)));
+
+      flush();
+   }
+
+   static bool supports_hole_punching() {
+#if defined(__linux__) || defined(__APPLE__)
+      return true;
+#endif
+      return false;
+   }
+
+   size_t filesystem_block_size() const { return _file_blk_size; }
+
    bool eof() const { return feof(_file.get()) != 0; }
 
    int getc() { 
@@ -169,6 +207,7 @@ public:
 private:
    bool                  _open = false;
    fc::path              _file_path;
+   size_t                _file_blk_size = 4096;
    detail::unique_file   _file;
 };
 
