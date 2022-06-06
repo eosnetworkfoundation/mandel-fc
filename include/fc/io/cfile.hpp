@@ -6,6 +6,8 @@
 #include <fcntl.h>
 #include <sys/stat.h>
 
+#include <boost/interprocess/file_mapping.hpp>
+
 #ifndef _WIN32
 #define FC_FOPEN(p, m) fopen(p, m)
 #else
@@ -200,6 +202,10 @@ public:
    void close() {
       _file.reset();
       _open = false;
+   }
+
+   boost::interprocess::mapping_handle_t get_mapping_handle() const {
+      return {fileno(), false};
    }
 
    cfile_datastream create_datastream();
