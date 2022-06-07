@@ -58,4 +58,103 @@ BOOST_AUTO_TEST_SUITE(cfile_test_suite)
       BOOST_CHECK( !fc::exists( tempdir.path() / "test") );
    }
 
+   BOOST_AUTO_TEST_CASE(test_hole_punching)
+   {
+      if(!cfile::supports_hole_punching())
+         return;
+
+      fc::temp_file tmpfile;
+      cfile file;
+      file.set_file_path(tmpfile.path());
+      file.open("a+b");
+      file.close();
+      file.open("w+b");
+
+      std::vector<char> a, b, c, d, e, f, g, h, i, j;
+      a.assign(file.filesystem_block_size(), 'A');   //0
+      b.assign(file.filesystem_block_size(), 'B');   //1
+      c.assign(file.filesystem_block_size()/4, 'C'); //2
+      d.assign(file.filesystem_block_size()/4, 'D');
+      e.assign(file.filesystem_block_size()/4, 'E');
+      f.assign(file.filesystem_block_size()/4, 'F');
+      g.assign(file.filesystem_block_size()/2, 'G'); //3
+      h.assign(file.filesystem_block_size()/2, 'H');
+      i.assign(file.filesystem_block_size(), 'I');   //4
+      j.assign(file.filesystem_block_size(), 'J');   //5
+
+      std::vector<char> nom, nom2, nom4;
+      nom.resize(file.filesystem_block_size());
+      nom2.resize(file.filesystem_block_size()/2);
+      nom4.resize(file.filesystem_block_size()/4);
+
+      file.write(a.data(), a.size());
+      file.write(b.data(), b.size());
+      file.write(c.data(), c.size());
+      file.write(d.data(), d.size());
+      file.write(e.data(), e.size());
+      file.write(f.data(), f.size());
+      file.write(g.data(), g.size());
+      file.write(h.data(), h.size());
+
+      //should do nothing
+      file.punch_hole(4, 8);
+      file.seek(0);
+      file.read(nom.data(), nom.size());
+      BOOST_TEST_REQUIRE(nom == a);
+
+      //should also do nothing
+      file.punch_hole(file.filesystem_block_size(), file.filesystem_block_size()+file.filesystem_block_size()/2);
+      file.seek(file.filesystem_block_size());
+      file.read(nom.data(), nom.size());
+      BOOST_TEST_REQUIRE(nom == b);
+
+      //should only wipe out B
+      file.punch_hole(file.filesystem_block_size(), file.filesystem_block_size()*2+file.filesystem_block_size()/2);
+      file.seek(0);
+      file.read(nom.data(), nom.size());
+      BOOST_TEST_REQUIRE(nom == a);
+      file.read(nom.data(), nom.size());
+      BOOST_TEST_REQUIRE(nom != b);
+      file.read(nom4.data(), nom4.size());
+      BOOST_TEST_REQUIRE(nom4 == c);
+
+      //write some stuff at the end after we had punched
+      file.seek_end(0);
+      file.write(i.data(), i.size());
+      file.write(j.data(), j.size());
+
+      //check C is intact
+      file.seek(file.filesystem_block_size()*2);
+      file.read(nom4.data(), nom4.size());
+      BOOST_TEST_REQUIRE(nom4 == c);
+
+      //should wipe out C,D,E,F
+      file.punch_hole(file.filesystem_block_size()*2, file.filesystem_block_size()*3+file.filesystem_block_size()/2);
+      file.seek(file.filesystem_block_size()*2);
+      file.read(nom4.data(), nom4.size());
+      BOOST_TEST_REQUIRE(nom4 != c);
+
+      //so check that G,H,I are still intact
+      file.seek(file.filesystem_block_size()*3);
+      file.read(nom2.data(), nom2.size());
+      BOOST_TEST_REQUIRE(nom2 == g);
+      file.read(nom2.data(), nom2.size());
+      BOOST_TEST_REQUIRE(nom2 == h);
+      file.read(nom.data(), nom.size());
+      BOOST_TEST_REQUIRE(nom == i);
+
+      //check I is intact
+      file.seek(file.filesystem_block_size()*4);
+      file.read(nom.data(), nom.size());
+      BOOST_TEST_REQUIRE(nom == i);
+
+      //should only wipe out I
+      file.punch_hole(file.filesystem_block_size()*4, file.filesystem_block_size()*5);
+      file.seek(file.filesystem_block_size()*4);
+      file.read(nom.data(), nom.size());
+      BOOST_TEST_REQUIRE(nom != i);
+      file.read(nom.data(), nom.size());
+      BOOST_TEST_REQUIRE(nom == j);
+   }
+
 BOOST_AUTO_TEST_SUITE_END()
