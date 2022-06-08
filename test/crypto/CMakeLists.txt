@@ -16,8 +16,8 @@ target_link_libraries( test_blake2 fc )
 add_executable( test_modular_arithmetic test_modular_arithmetic.cpp )
 target_link_libraries( test_modular_arithmetic fc )
 
-add_executable( test_ecrecover test_ecrecover.cpp )
-target_link_libraries( test_ecrecover fc )
+add_executable( test_k1_recover test_k1_recover.cpp )
+target_link_libraries( test_k1_recover fc )
 
 add_test(NAME test_cypher_suites COMMAND libraries/fc/test/crypto/test_cypher_suites WORKING_DIRECTORY ${CMAKE_BINARY_DIR})
 add_test(NAME test_webauthn COMMAND libraries/fc/test/crypto/test_webauthn WORKING_DIRECTORY ${CMAKE_BINARY_DIR})
@@ -25,4 +25,4 @@ add_test(NAME test_hash_functions COMMAND libraries/fc/test/crypto/test_hash_fun
 add_test(NAME test_alt_bn128 COMMAND libraries/fc/test/crypto/test_alt_bn128 WORKING_DIRECTORY ${CMAKE_BINARY_DIR})
 add_test(NAME test_blake2 COMMAND libraries/fc/test/crypto/test_blake2 WORKING_DIRECTORY ${CMAKE_BINARY_DIR})
 add_test(NAME test_modular_arithmetic COMMAND libraries/fc/test/crypto/test_modular_arithmetic WORKING_DIRECTORY ${CMAKE_BINARY_DIR})
-add_test(NAME test_ecrecover COMMAND libraries/fc/test/crypto/test_ecrecover WORKING_DIRECTORY ${CMAKE_BINARY_DIR})
+add_test(NAME test_k1_recover COMMAND libraries/fc/test/crypto/test_k1_recover WORKING_DIRECTORY ${CMAKE_BINARY_DIR})

@@ -3,7 +3,7 @@
 
 #include <fc/exception/exception.hpp>
 #include <fc/crypto/hex.hpp>
-#include <fc/crypto/ecrecover.hpp>
+#include <fc/crypto/k1_recover.hpp>
 #include <fc/utility.hpp>
 
 using namespace fc;
@@ -11,21 +11,21 @@ using namespace fc;
 #include "test_utils.hpp"
 
 namespace std {
-std::ostream& operator<<(std::ostream& st, const std::variant<fc::ecrecover_error, bytes>& err)
+std::ostream& operator<<(std::ostream& st, const std::variant<fc::k1_recover_error, bytes>& err)
 {
-   if(std::holds_alternative<fc::ecrecover_error>(err))
-      st << static_cast<int32_t>(std::get<fc::ecrecover_error>(err));
+   if(std::holds_alternative<fc::k1_recover_error>(err))
+      st << static_cast<int32_t>(std::get<fc::k1_recover_error>(err));
    else
       st << fc::to_hex(std::get<bytes>(err));
     return st;
 }
 }
 
-BOOST_AUTO_TEST_SUITE(ecrecover)
+BOOST_AUTO_TEST_SUITE(k1_recover)
 BOOST_AUTO_TEST_CASE(recover) try {
 
-   using test_ecrecover = std::tuple<std::string, std::string, std::variant<fc::ecrecover_error, bytes>>;
-   const std::vector<test_ecrecover> tests {
+   using test_k1_recover = std::tuple<std::string, std::string, std::variant<fc::k1_recover_error, bytes>>;
+   const std::vector<test_k1_recover> tests {
       //test
       {
          "1b323dd47a1dd5592c296ee2ee12e0af38974087a475e99098a440284f19c1f7642fa0baa10a8a3ab800dfdbe987dee68a09b6fa3db45a5cc4f3a5835a1671d4dd",
@@ -37,21 +37,21 @@ BOOST_AUTO_TEST_CASE(recover) try {
       {
          "01174de755b55bd29026d626f7313a5560353dc5175f29c78d79d961b81a0c04360d833ca789bc16d4ee714a6d1a19461d890966e0ec5c074f67be67e631d33aa7",
          "45fd65f6dd062fe7020f11d19fe5c35dc4d425e1479c0968c8e932c208f25399",
-         fc::ecrecover_error::invalid_signature
+         fc::k1_recover_error::invalid_signature
       },
 
       //test (invalid signature len)
       {
          "174de755b55bd29026d626f7313a5560353dc5175f29c78d79d961b81a0c04360d833ca789bc16d4ee714a6d1a19461d890966e0ec5c074f67be67e631d33aa7",
          "45fd65f6dd062fe7020f11d19fe5c35dc4d425e1479c0968c8e932c208f25399",
-         fc::ecrecover_error::input_error
+         fc::k1_recover_error::input_error
       },
 
       //test (invalid digest len)
       {
          "00174de755b55bd29026d626f7313a5560353dc5175f29c78d79d961b81a0c04360d833ca789bc16d4ee714a6d1a19461d890966e0ec5c074f67be67e631d33aa7",
          "fd65f6dd062fe7020f11d19fe5c35dc4d425e1479c0968c8e932c208f25399",
-         fc::ecrecover_error::input_error
+         fc::k1_recover_error::input_error
       },
 
    };
@@ -62,7 +62,7 @@ BOOST_AUTO_TEST_CASE(recover) try {
         const auto& digest          = to_bytes(std::get<1>(test));
         const auto& expected_result = std::get<2>(test);
 
-        auto res = fc::ecrecover(signature, digest);
+        auto res = fc::k1_recover(signature, digest);
         BOOST_CHECK_EQUAL(res, expected_result);
     }
 

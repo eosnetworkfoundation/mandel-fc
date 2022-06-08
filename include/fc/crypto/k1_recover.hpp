@@ -9,12 +9,12 @@
 namespace fc {
     using bytes = std::vector<char>;
 
-    enum class ecrecover_error : int32_t {
+    enum class k1_recover_error : int32_t {
         init_error,
         input_error,
         invalid_signature,
         recover_error,
     };
 
-    std::variant<ecrecover_error, bytes> ecrecover(const bytes& signature, const bytes& digest);
+    std::variant<k1_recover_error, bytes> k1_recover(const bytes& signature, const bytes& digest);
 } // fc
