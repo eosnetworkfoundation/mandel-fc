@@ -35,7 +35,7 @@ namespace fc { namespace crypto {
       :_storage(sig_parse_base58(base58str))
    {}
 
-   int signature::which() const {
+   size_t signature::which() const {
       return _storage.index();
    }
 
