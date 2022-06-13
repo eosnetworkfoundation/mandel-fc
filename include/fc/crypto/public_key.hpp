@@ -36,7 +36,7 @@ namespace fc { namespace crypto {
 
          bool valid()const;
 
-         int which()const;
+         size_t which()const;
 
          // serialize to/from string
          explicit public_key(const string& base58str);

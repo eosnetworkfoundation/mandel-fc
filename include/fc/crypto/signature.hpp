@@ -30,7 +30,7 @@ namespace fc { namespace crypto {
          explicit signature(const string& base58str);
          std::string to_string(const fc::yield_function_t& yield = fc::yield_function_t()) const;
 
-         int which() const;
+         size_t which() const;
 
          size_t variable_size() const;
 

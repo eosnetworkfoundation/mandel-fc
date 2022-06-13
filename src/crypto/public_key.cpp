@@ -24,7 +24,7 @@ namespace fc { namespace crypto {
    {
    }
 
-   int public_key::which() const {
+   size_t public_key::which() const {
       return _storage.index();
    }
 
