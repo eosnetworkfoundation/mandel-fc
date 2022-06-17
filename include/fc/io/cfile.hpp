@@ -170,8 +170,8 @@ public:
 #if defined(__linux__)
       ret = fallocate(fileno(), FALLOC_FL_PUNCH_HOLE|FALLOC_FL_KEEP_SIZE, begin, end-begin);
 #elif defined(__APPLE__)
-      struct fpunchhole puncher = {0, 0, begin, end-begin};
-      ret = fcntl(block_file.fileno(), F_PUNCHHOLE, &puncher);
+      struct fpunchhole puncher = {0, 0, static_cast<off_t>(begin), static_cast<off_t>(end-begin)};
+      ret = fcntl(fileno(), F_PUNCHHOLE, &puncher);
 #endif
       if(ret == -1)
          wlog("Failed to punch hole in file ${f}: ${e}", ("f", _file_path)("e", strerror(errno)));
