@@ -26,7 +26,7 @@ namespace fc {
  *
  *  @tparam T - the type that will be visited.
  *
- *  The @ref FC_REFLECT(TYPE,MEMBERS) or FC_STATIC_REFLECT_DERIVED(TYPE,BASES,MEMBERS) macro is used to specialize this
+ *  The @ref FC_REFLECT(TYPE,MEMBERS,...) or FC_STATIC_REFLECT_DERIVED(TYPE,BASES,MEMBERS,...) macro is used to specialize this
  *  class for your type.
  */
 template<typename T>
@@ -156,6 +156,11 @@ struct reflector_init_visitor {
   visitor.FC_TEMPLATE operator()<member_type,type,&type::elem>( BOOST_PP_STRINGIZE(elem) ); \
 }
 
+#define FC_REFLECT_STRUCT_BASE( r, x, elem) \
+  elem mb##_##r;
+
+#define FC_REFLECT_STRUCT_MEMBER( r, x, elem ) \
+  decltype((static_cast<type*>(nullptr))->elem) m_##x##_##r;
 
 #define FC_REFLECT_BASE_MEMBER_COUNT( r, OP, elem ) \
   OP fc::reflector<elem>::total_member_count
@@ -163,7 +168,7 @@ struct reflector_init_visitor {
 #define FC_REFLECT_MEMBER_COUNT( r, OP, elem ) \
   OP 1
 
-#define FC_REFLECT_DERIVED_IMPL_INLINE( TYPE, INHERITS, MEMBERS ) \
+#define FC_REFLECT_DERIVED_IMPL_INLINE( PACKED, TYPE, INHERITS, MEMBERS, ... ) \
 template<typename Visitor>\
 static inline void visit_base( Visitor&& v ) { \
     BOOST_PP_SEQ_FOR_EACH( FC_REFLECT_VISIT_BASE, v, INHERITS ) \
@@ -174,7 +179,12 @@ static inline void visit( Visitor&& v ) { \
     BOOST_PP_SEQ_FOR_EACH( FC_REFLECT_VISIT_BASE, v, INHERITS ) \
     BOOST_PP_SEQ_FOR_EACH( FC_REFLECT_VISIT_MEMBER, v, MEMBERS ) \
     init( std::forward<Visitor>(v) ); \
-}
+} \
+struct reflected_struct { \
+    BOOST_PP_SEQ_FOR_EACH( FC_REFLECT_STRUCT_BASE, x, INHERITS ) \
+    BOOST_PP_SEQ_FOR_EACH( FC_REFLECT_STRUCT_MEMBER, x, MEMBERS ) \
+    BOOST_PP_SEQ_FOR_EACH( FC_REFLECT_STRUCT_MEMBER, ignore, __VA_ARGS__ ) \
+} PACKED ;
 
 #endif // DOXYGEN
 
@@ -259,15 +269,16 @@ template<> struct get_typename<ENUM>  { static const char* name()  { return BOOS
  */
 
 /**
- *  @def FC_REFLECT_DERIVED(TYPE,INHERITS,MEMBERS)
+ *  @def FC_REFLECT_DERIVED(TYPE,INHERITS,MEMBERS,...)
  *
  *  @brief Specializes fc::reflector for TYPE where
  *         type inherits other reflected classes
  *
  *  @param INHERITS - a sequence of base class names (basea)(baseb)(basec)
  *  @param MEMBERS - a sequence of member names.  (field1)(field2)(field3)
+ *  @param ... - a sequence of members of TYPE that should be ignored. (ignored_field1)(ignored_field2)
  */
-#define FC_REFLECT_DERIVED_TEMPLATE( TEMPLATE_ARGS, TYPE, INHERITS, MEMBERS ) \
+#define FC_REFLECT_DERIVED_TEMPLATE( PACKED, TEMPLATE_ARGS, TYPE, INHERITS, MEMBERS, ... ) \
 namespace fc {  \
   template<BOOST_PP_SEQ_ENUM(TEMPLATE_ARGS)> struct get_typename<TYPE>  { static const char* name()  { return BOOST_PP_STRINGIZE(TYPE);  } }; \
 template<BOOST_PP_SEQ_ENUM(TEMPLATE_ARGS)> struct reflector<TYPE> {\
@@ -288,31 +299,36 @@ template<BOOST_PP_SEQ_ENUM(TEMPLATE_ARGS)> struct reflector<TYPE> {\
       local_member_count = 0  BOOST_PP_SEQ_FOR_EACH( FC_REFLECT_MEMBER_COUNT, +, MEMBERS ),\
       total_member_count = local_member_count BOOST_PP_SEQ_FOR_EACH( FC_REFLECT_BASE_MEMBER_COUNT, +, INHERITS )\
     }; \
-    FC_REFLECT_DERIVED_IMPL_INLINE( TYPE, INHERITS, MEMBERS ) \
+    FC_REFLECT_DERIVED_IMPL_INLINE( PACKED, TYPE, INHERITS, MEMBERS, __VA_ARGS__ ) \
     static_assert( not fc::has_reflector_init<TYPE>::value || \
                    std::is_base_of<fc::reflect_init, TYPE>::value, "must derive from fc::reflect_init" ); \
     static_assert( not std::is_base_of<fc::reflect_init, TYPE>::value || \
                    fc::has_reflector_init<TYPE>::value, "must provide reflector_init() method" ); \
+    static_assert( sizeof(reflected_struct) == sizeof(TYPE), "all members must be listed or explicitly ignored" ); \
 }; }
 
-#define FC_REFLECT_DERIVED( TYPE, INHERITS, MEMBERS ) \
-   FC_REFLECT_DERIVED_TEMPLATE( (), TYPE, INHERITS, MEMBERS )
-
-//BOOST_PP_SEQ_SIZE(MEMBERS),
+#define FC_REFLECT_DERIVED( TYPE, INHERITS, MEMBERS, ... ) \
+   FC_REFLECT_DERIVED_TEMPLATE( , (), TYPE, INHERITS, MEMBERS, __VA_ARGS__ )
+#define FC_REFLECT_DERIVED_PACKED( TYPE, INHERITS, MEMBERS, ... ) \
+   FC_REFLECT_DERIVED_TEMPLATE( __attribute__ ((packed)), (), TYPE, INHERITS, MEMBERS, __VA_ARGS__ )
 
 /**
- *  @def FC_REFLECT(TYPE,MEMBERS)
+ *  @def FC_REFLECT(TYPE,MEMBERS,...)
  *  @brief Specializes fc::reflector for TYPE
  *
  *  @param MEMBERS - a sequence of member names.  (field1)(field2)(field3)
+ *  @param ... - a sequence of member names to not reflect.  (ignore_field1)(ignore_field2)(ignore_field3)
  *
  *  @see FC_REFLECT_DERIVED
  */
-#define FC_REFLECT( TYPE, MEMBERS ) \
-    FC_REFLECT_DERIVED( TYPE, BOOST_PP_SEQ_NIL, MEMBERS )
+#define FC_REFLECT( TYPE, MEMBERS, ... ) \
+    FC_REFLECT_DERIVED( TYPE, BOOST_PP_SEQ_NIL, MEMBERS, __VA_ARGS__ )
+
+#define FC_REFLECT_PACKED( TYPE, MEMBERS, ... ) \
+    FC_REFLECT_DERIVED_PACKED( TYPE, BOOST_PP_SEQ_NIL, MEMBERS, __VA_ARGS__ )
 
 #define FC_REFLECT_TEMPLATE( TEMPLATE_ARGS, TYPE, MEMBERS ) \
-    FC_REFLECT_DERIVED_TEMPLATE( TEMPLATE_ARGS, TYPE, BOOST_PP_SEQ_NIL, MEMBERS )
+    FC_REFLECT_DERIVED_TEMPLATE( , TEMPLATE_ARGS, TYPE, BOOST_PP_SEQ_NIL, MEMBERS )
 
 #define FC_REFLECT_EMPTY( TYPE ) \
     FC_REFLECT_DERIVED( TYPE, BOOST_PP_SEQ_NIL, BOOST_PP_SEQ_NIL )
