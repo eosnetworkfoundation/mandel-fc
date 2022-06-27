@@ -55,7 +55,7 @@ namespace fc {
         }
 
         if (x.is_zero() && y.is_zero()) {
-            return alt_bn128_error::operand_at_origin;
+            return libff::alt_bn128_G1::zero();
         }
 
         libff::alt_bn128_G1 point{x, y, libff::alt_bn128_Fq::one()};
@@ -85,6 +85,9 @@ namespace fc {
     }
 
     std::variant<alt_bn128_error, libff::alt_bn128_G2> decode_g2_element(const bytes& bytes128_be) noexcept {
+        if(bytes128_be.size() != 128) {
+            return alt_bn128_error::input_len_error;
+        }
 
         bytes sub1(bytes128_be.begin(), bytes128_be.begin()+64);        
         auto maybe_x = decode_fp2_element(sub1);
@@ -102,7 +105,7 @@ namespace fc {
         const auto& y = std::get<libff::alt_bn128_Fq2>(maybe_y);
 
         if (x.is_zero() && y.is_zero()) {
-            return alt_bn128_error::operand_at_origin;
+            return libff::alt_bn128_G2::zero();
         }
 
         libff::alt_bn128_G2 point{x, y, libff::alt_bn128_Fq2::one()};

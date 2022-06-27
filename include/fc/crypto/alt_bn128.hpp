@@ -11,7 +11,6 @@ namespace fc {
 
     enum class alt_bn128_error : int32_t {
         operand_component_invalid,
-        operand_at_origin,
         operand_not_in_curve,
         pairing_list_size_error,
         operand_outside_g2,
