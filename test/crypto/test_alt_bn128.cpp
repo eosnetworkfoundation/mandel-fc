@@ -66,7 +66,7 @@ BOOST_AUTO_TEST_CASE(add) try {
         {
             "00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000",
             "1bd20beca3d8d28e536d2b5bd3bf36d76af68af5e6c96ca6e5519ba9ff8f53322a53edf6b48bcf5cb1c0b4ad1d36dfce06a79dcd6526f1c386a14d8ce4649844",
-            alt_bn128_error::operand_at_origin
+            to_bytes("1bd20beca3d8d28e536d2b5bd3bf36d76af68af5e6c96ca6e5519ba9ff8f53322a53edf6b48bcf5cb1c0b4ad1d36dfce06a79dcd6526f1c386a14d8ce4649844")
         },
     };
 
@@ -125,7 +125,7 @@ BOOST_AUTO_TEST_CASE(mul) try {
         {
             "00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000",
             "0312ed43559cf8ecbab5221256a56e567aac5035308e3f1d54954d8b97cd1c9b",
-            alt_bn128_error::operand_at_origin,
+            to_bytes("00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000")
         },
 
     };
@@ -203,22 +203,6 @@ BOOST_AUTO_TEST_CASE(pair) try {
 
             },
             alt_bn128_error::pairing_list_size_error
-        },
-
-        //test4: 1 pair => (G1_a,G2_a) ; alt_bn128_error::operand_at_origin; false
-        {
-            {
-                { //G1_a G2_a
-                    "0000000000000000000000000000000000000000000000000000000000000000", //G1_a.x
-                    "0000000000000000000000000000000000000000000000000000000000000000", //G1_a.y
-                    "198e9393920d483a7260bfb731fb5d25f1aa493335a9e71297e485b7aef312c2", //G2_b.x
-                    "1800deef121f1e76426a00665e5c4479674322d4f75edadd46debd5cd992f6ed",
-                    "090689d0585ff075ec9e99ad690c3395bc4b313370b38ef355acdadcd122975b", //G2_b.y
-                    "12c85ea5db8c6deb4aab71808dcb408fe3d1e7690c43d37b4ce6cc0166fa7daa"
-                },
-
-            },
-            alt_bn128_error::operand_at_origin
         },
 
         //test5: 1 pair => (G1_a,G2_a) ; alt_bn128_error::operand_not_in_curve; false
