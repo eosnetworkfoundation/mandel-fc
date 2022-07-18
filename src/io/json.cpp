@@ -8,8 +8,6 @@
 #include <fstream>
 #include <sstream>
 
-#include <boost/filesystem/fstream.hpp>
-
 namespace fc
 {
     // forward declarations of provided functions
@@ -799,17 +797,17 @@ namespace fc
       //auto tmp = std::make_shared<fc::ifstream>( p, ifstream::binary );
       //auto tmp = std::make_shared<std::ifstream>( p.generic_string().c_str(), std::ios::binary );
       //buffered_istream bi( tmp );
-      boost::filesystem::ifstream bi( p, std::ios::binary );
+      std::ifstream bi( p, std::ios::binary );
       switch( ptype )
       {
           case json::parse_type::legacy_parser:
-             return variant_from_stream<boost::filesystem::ifstream, json::parse_type::legacy_parser>( bi, max_depth );
+             return variant_from_stream<std::ifstream, json::parse_type::legacy_parser>( bi, max_depth );
           case json::parse_type::legacy_parser_with_string_doubles:
-              return variant_from_stream<boost::filesystem::ifstream, json::parse_type::legacy_parser_with_string_doubles>( bi, max_depth );
+              return variant_from_stream<std::ifstream, json::parse_type::legacy_parser_with_string_doubles>( bi, max_depth );
           case json::parse_type::strict_parser:
-              return json_relaxed::variant_from_stream<boost::filesystem::ifstream, true>( bi, max_depth );
+              return json_relaxed::variant_from_stream<std::ifstream, true>( bi, max_depth );
           case json::parse_type::relaxed_parser:
-              return json_relaxed::variant_from_stream<boost::filesystem::ifstream, false>( bi, max_depth );
+              return json_relaxed::variant_from_stream<std::ifstream, false>( bi, max_depth );
           default:
               FC_ASSERT( false, "Unknown JSON parser type {ptype}", ("ptype", static_cast<int>(ptype)) );
       }

@@ -6,91 +6,10 @@
 #include <fc/reflect/typename.hpp>
 #include <fc/fwd.hpp>
 
-namespace boost {
-  namespace filesystem {
-    class path;
-    class directory_iterator;
-    class recursive_directory_iterator;
-  }
-}
-
+#include <filesystem>
 
 namespace fc {
-  /**
-   *  @brief wraps boost::filesystem::path to provide platform independent path manipulation.
-   *
-   *  Most calls are simply a passthrough to boost::filesystem::path, however exceptions are
-   *  wrapped in an fc::error_report and the additional helper method fc::path::windows_string(),
-   *  can be used to calculate paths intended for systems different than the host.
-   *
-   *  @note Serializes to a fc::value() as the result of generic_string()
-   */
-  class path {
-    public:
-      path();
-      ~path();
-      path( const boost::filesystem::path& );
-      path( const std::string& p );
-      /// Constructor to build path using unicode native characters.
-      path(const std::wstring& p);
-      path( const char* );
-      path( const path& p );
-      path( path&& p );
-      path& operator =( const path& );
-      path& operator =( path&& );
-
-      path& operator /=( const fc::path& );
-      friend path operator /( const fc::path& p, const fc::path& );
-      friend bool operator ==( const fc::path& p, const fc::path& );
-      friend bool operator !=( const fc::path& p, const fc::path& );
-      friend bool operator < ( const fc::path& p, const fc::path& );
-
-      operator boost::filesystem::path& ();
-      operator const boost::filesystem::path& ()const;
-
-      void         replace_extension( const fc::path& e );
-      fc::path     stem()const;
-      fc::path     extension()const;
-      fc::path     filename()const;
-      fc::path     parent_path()const;
-      std::string   string()const;
-      std::string   generic_string()const;
-      /** On windows, returns a path where all path separators are '\' suitable for displaying
-       * to users.  On other platforms, it does the same as generic_string()
-       */
-      std::string   preferred_string() const;
-
-      std::wstring wstring() const;
-      std::wstring generic_wstring() const;
-      std::wstring preferred_wstring() const;
-
-      /** Retrieves native string path representation and next converts it into
-          ANSI UTF-8 representation.
-          It is needed since not all parts of fc library accept unicode paths
-          (fc::file_mapping).
-      */
-      std::string  to_native_ansi_path() const;
-
-      /**
-       * @brief replaces '/' with '\' in the result of generic_string()
-       *
-       * @note not part of boost::filesystem::path
-       */
-      std::string windows_string()const;
-
-      bool       is_relative()const;
-      bool       is_absolute()const;
-      bool       empty() const;
-
-      static char    separator_char;
-
-    private:
-    #ifdef _WIN64
-      fwd<boost::filesystem::path,40> _p; 
-    #else
-      fwd<boost::filesystem::path,32> _p; 
-    #endif
-  };
+  using std::filesystem::path;
 
   namespace detail
   {
@@ -110,40 +29,8 @@ namespace fc {
     };
   }
 
-  class directory_iterator {
-    public:
-      directory_iterator( const fc::path& p );
-      directory_iterator();
-      ~directory_iterator();
-
-      fc::path            operator*()const;
-      detail::path_wrapper operator->() const;
-      directory_iterator& operator++(int);
-      directory_iterator& operator++();
-
-      friend bool operator==( const directory_iterator&, const directory_iterator& );
-      friend bool operator!=( const directory_iterator&, const directory_iterator& );
-    private:
-      fwd<boost::filesystem::directory_iterator,16> _p; 
-  };
-  class recursive_directory_iterator {
-    public:
-      recursive_directory_iterator( const fc::path& p );
-      recursive_directory_iterator();
-      ~recursive_directory_iterator();
-
-      fc::path            operator*()const;
-      recursive_directory_iterator& operator++(int);
-      recursive_directory_iterator& operator++();
-      void pop();
-      int  level();
-
-
-      friend bool operator==( const recursive_directory_iterator&, const recursive_directory_iterator& );
-      friend bool operator!=( const recursive_directory_iterator&, const recursive_directory_iterator& );
-    private:
-      fwd<boost::filesystem::recursive_directory_iterator,16> _p; 
-  };
+  using std::filesystem::directory_iterator;
+  using std::filesystem::recursive_directory_iterator;
 
   bool     exists( const path& p );
   bool     is_directory( const path& p );
@@ -159,6 +46,7 @@ namespace fc {
   void     copy( const path& from, const path& to );
   void     rename( const path& from, const path& to );
   void     resize_file( const path& file, size_t s );
+  std::string to_native_ansi_path( const path& p );
   
   // setuid, setgid not implemented.
   // translates octal permission like 0755 to S_ stuff defined in sys/stat.h
@@ -259,6 +147,4 @@ namespace fc {
     std::unique_ptr<impl> my;
   };
 #endif // FC_HAS_SIMPLE_FILE_LOCK
-
 }
-

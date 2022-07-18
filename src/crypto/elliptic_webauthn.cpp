@@ -89,6 +89,7 @@ struct webauthn_json_handler : public rapidjson::BaseReaderHandler<rapidjson::UT
          case IN_NESTED_CONTAINER:
             return true;
       }
+      FC_THROW_EXCEPTION( exception, "invalid state" );
    }
 
    bool StartObject() {
@@ -109,7 +110,9 @@ struct webauthn_json_handler : public rapidjson::BaseReaderHandler<rapidjson::UT
          case EXPECT_TYPE_VALUE:
             return false;
       }
+      FC_THROW_EXCEPTION( exception, "invalid state" );
    }
+
    bool Key(const char* str, rapidjson::SizeType length, bool copy) {
       switch(current_state) {
          case EXPECT_FIRST_OBJECT_START:
@@ -132,6 +135,7 @@ struct webauthn_json_handler : public rapidjson::BaseReaderHandler<rapidjson::UT
          case IN_NESTED_CONTAINER:
             return true;
       }
+      FC_THROW_EXCEPTION( exception, "invalid state" );
    }
    bool EndObject(rapidjson::SizeType memberCount) {
       switch(current_state) {
@@ -148,6 +152,7 @@ struct webauthn_json_handler : public rapidjson::BaseReaderHandler<rapidjson::UT
          case EXPECT_FIRST_OBJECT_KEY:
             return true;
       }
+      FC_THROW_EXCEPTION( exception, "invalid state" );
    }
 
    bool StartArray() {
@@ -166,6 +171,7 @@ struct webauthn_json_handler : public rapidjson::BaseReaderHandler<rapidjson::UT
          case EXPECT_TYPE_VALUE:
             return false;
       }
+      FC_THROW_EXCEPTION( exception, "invalid state" );
    }
    bool EndArray(rapidjson::SizeType elementCount) {
       switch(current_state) {
@@ -181,6 +187,7 @@ struct webauthn_json_handler : public rapidjson::BaseReaderHandler<rapidjson::UT
                current_state = EXPECT_FIRST_OBJECT_KEY;
             return true;
       }
+      FC_THROW_EXCEPTION( exception, "invalid state" );
    }
 };
 } //detail

@@ -1,10 +1,10 @@
 #pragma once
 #include <fc/interprocess/file_mapping.hpp>
+#include <fc/filesystem.hpp>
 #include <memory>
 
 namespace fc
 {
-   class path;
    namespace detail
    {
        /**

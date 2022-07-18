@@ -4,6 +4,7 @@
 #include <fc/io/varint.hpp>
 #include <fc/array.hpp>
 #include <fc/safe.hpp>
+#include <fc/filesystem.hpp>
 #include <deque>
 #include <vector>
 #include <string>
@@ -17,7 +18,6 @@ namespace fc {
    class time_point_sec;
    class variant;
    class variant_object;
-   class path;
    
    template<typename IntType, typename EnumType> class enum_type;
    namespace ip { class endpoint; }

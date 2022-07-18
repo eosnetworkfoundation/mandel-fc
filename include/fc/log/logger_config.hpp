@@ -1,13 +1,13 @@
 #pragma once
 #include <fc/log/logger.hpp>
 #include <fc/log/appender.hpp>
+#include <fc/filesystem.hpp>
 #include <mutex>
 #include <string>
 #include <unordered_map>
 #include <vector>
 
 namespace fc {
-   class path;
    struct appender_config {
       appender_config(const string& name = "",
                       const string& type = "",
