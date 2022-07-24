@@ -7,3 +7,6 @@
 [submodule "libraries/ff"]
 	path = libraries/ff
 	url = https://github.com/eosnetworkfoundation/libff
+[submodule "libraries/libtommath"]
+	path = libraries/libtommath
+	url = https://github.com/libtom/libtommath
