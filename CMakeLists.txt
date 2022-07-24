@@ -38,6 +38,8 @@ SET( IS_LIBFF_PARENT OFF CACHE BOOL "" FORCE)
 SET( FF_INSTALL_COMPONENT "${FC_INSTALL_COMPONENT}")
 add_subdirectory( libraries/ff )
 
+file( GLOB TOMMATH_SOURCES libraries/libtommath/*.c )
+
 IF( ECC_IMPL STREQUAL openssl )
   SET( ECC_REST src/crypto/elliptic_impl_pub.cpp )
 ELSE( ECC_IMPL STREQUAL openssl )
@@ -128,6 +130,7 @@ set( fc_sources
      src/compress/zlib.cpp
      src/log/gelf_appender.cpp
      src/log/zipkin.cpp
+     ${TOMMATH_SOURCES}
      )
 
 file( GLOB_RECURSE fc_headers ${CMAKE_CURRENT_SOURCE_DIR} *.hpp *.h )
@@ -185,6 +188,7 @@ target_include_directories(fc
   PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include
     ${OPENSSL_INCLUDE_DIR}
     ${CMAKE_CURRENT_SOURCE_DIR}/vendor/websocketpp
+  PRIVATE libraries/libtommath/
   )
 
 # try and make this very clear that this json parser is intended only for webauthn parsing..
