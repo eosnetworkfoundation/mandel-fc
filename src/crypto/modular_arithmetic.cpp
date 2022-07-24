@@ -1,6 +1,7 @@
-#include <gmp.h>
 #include <fc/crypto/modular_arithmetic.hpp>
+#include <tommath.h>
 #include <algorithm>
+#include <fc/scoped_exit.hpp>
 
 namespace fc {
 
@@ -12,34 +13,44 @@ namespace fc {
 
       auto output = bytes(_modulus.size(), '\0');
 
-      mpz_t base, exponent, modulus;
-      mpz_inits(base, exponent, modulus, nullptr);
+      mp_int base, exponent, modulus, result;
+      if (mp_init_multi(&base, &exponent, &modulus, &result, nullptr) != MP_OKAY) {
+         return modular_arithmetic_error::init;
+      }
+      auto free_mp = fc::make_scoped_exit([&]() {
+         mp_clear_multi(&base, &exponent, &modulus, &result, nullptr);
+      });
 
       if (_base.size()) {
-         mpz_import(base, _base.size(), 1, 1, 0, 0, _base.data());
+         if (mp_unpack(&base, _base.size(), MP_MSB_FIRST, 1, MP_LITTLE_ENDIAN, 0, _base.data()) != MP_OKAY) {
+            return modular_arithmetic_error::unpack;
+         }
       }
 
       if (_exponent.size()) {
-         mpz_import(exponent, _exponent.size(), 1, 1, 0, 0, _exponent.data());
+         if (mp_unpack(&exponent, _exponent.size(), MP_MSB_FIRST, 1, MP_LITTLE_ENDIAN, 0, _exponent.data()) != MP_OKAY) {
+            return modular_arithmetic_error::unpack;
+         }
       }
 
-      mpz_import(modulus, _modulus.size(), 1, 1, 0, 0, _modulus.data());
+      if (mp_unpack(&modulus, _modulus.size(), MP_MSB_FIRST, 1, MP_LITTLE_ENDIAN, 0, _modulus.data()) != MP_OKAY) {
+         return modular_arithmetic_error::unpack;
+      }
 
-      if (mpz_sgn(modulus) == 0) {
-         mpz_clears(base, exponent, modulus, nullptr);
+      if (mp_iszero(&modulus)) {
          return output;
       }
 
-      mpz_t result;
-      mpz_init(result);
-
-      mpz_powm(result, base, exponent, modulus);
+      if (mp_exptmod(&base, &exponent, &modulus, &result) != MP_OKAY) {
+         return modular_arithmetic_error::modexp_run;
+      }
       // export as little-endian
-      mpz_export(output.data(), nullptr, -1, 1, 0, 0, result);
+      size_t written;
+      if (mp_pack(output.data(), output.size(), &written, MP_MSB_FIRST, 1, MP_LITTLE_ENDIAN, 0, &result) != MP_OKAY) {
+         return modular_arithmetic_error::pack;
+      }
       // and convert to big-endian
       std::reverse(output.begin(), output.end());
-
-      mpz_clears(base, exponent, modulus, result, nullptr);
 
       return output;
    }

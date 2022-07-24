@@ -9,6 +9,10 @@ namespace fc {
 
    enum class modular_arithmetic_error : int32_t {
       modulus_len_zero,
+      init,
+      unpack,
+      modexp_run,
+      pack
    };
 
    std::variant<modular_arithmetic_error, bytes> modexp(const bytes& _base, const bytes& _exponent, const bytes& _modulus);
