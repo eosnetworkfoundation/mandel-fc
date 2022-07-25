@@ -15,6 +15,7 @@ namespace fc {
             struct config
             {
                std::string file = "-";
+               std::string fifo = "-";
             };
             explicit dmlog_appender( const variant& args );
             explicit dmlog_appender( const std::optional<config>& args) ;
@@ -31,4 +32,4 @@ namespace fc {
    };
 }
 
-FC_REFLECT(fc::dmlog_appender::config, (file))
+FC_REFLECT(fc::dmlog_appender::config, (file)(fifo))

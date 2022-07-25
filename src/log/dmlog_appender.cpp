@@ -10,6 +10,8 @@
 #include <boost/asio/io_context.hpp>
 #include <boost/thread/mutex.hpp>
 #include <fc/exception/exception.hpp>
+#include <sys/types.h>
+#include <sys/stat.h>
 #include <iomanip>
 #include <mutex>
 #include <sstream>
@@ -20,16 +22,33 @@ namespace fc {
          bool is_stopped = false;
          FILE* out = nullptr;
          bool owns_out = false;
+         bool is_fifo = false;
    };
 
    dmlog_appender::dmlog_appender( const std::optional<dmlog_appender::config>& args )
    :dmlog_appender(){
-      if (!args || args->file == "-")
+      if (!args || (args->file == "-" && args->fifo == "-"))
       {
          my->out = stdout;
       }
-      else
-      {
+      else if (args->fifo != "-") {
+         auto fd = open(args->fifo.c_str(), O_RDWR | O_NONBLOCK);
+         if (fd < 0) {
+            FC_THROW("open failed for path ${name}, errno ${errno} -- ${errstr}", ("name", args->fifo) ("errno", errno) ("errstr", strerror(errno)));
+         }
+
+         my->out = fdopen(fd, "a");
+         if (my->out)
+         {
+            my->owns_out = true;
+            my->is_fifo = true;
+         }
+         else
+         {
+            FC_THROW("Failed to open deep mind log file ${name}", ("name", args->fifo));
+         }
+      }
+      else {
          my->out = std::fopen(args->file.c_str(), "a");
          if (my->out)
          {
@@ -68,15 +87,18 @@ namespace fc {
       while (!my->is_stopped && remaining_size) {
          auto written = fwrite(message_ptr, sizeof(char), remaining_size, out);
 
+         // In FIFO mode, fwrite fails with EAGAIN when no process opens FIFO for reading. Do not stop current process if this happens.
          // EINTR shouldn't happen anymore, but keep this detection, just in case.
-         if(written == 0 && errno != EINTR)
+         if(written == 0 && errno != EINTR && (!(my->is_fifo && errno == EAGAIN)))
          {
             my->is_stopped = true;
          }
 
          if(written != remaining_size)
          {
-            fprintf(stderr, "DMLOG FPRINTF_FAILED failed written=%lu remaining=%lu %d %s\n", written, remaining_size, ferror(out), strerror(errno));
+            if(!(my->is_fifo && errno == EAGAIN)) {
+               fprintf(stderr, "DMLOG FPRINTF_FAILED failed written=%lu remaining=%lu %d %s\n", written, remaining_size, ferror(out), strerror(errno));
+            }
             clearerr(out);
          }
 
