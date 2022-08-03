@@ -33,6 +33,13 @@ inline uint64_t rotl64(uint64_t x, uint64_t y) { return __builtin_rotateleft64(x
 __attribute__ ((always_inline))
 inline uint64_t rotl64(uint64_t x, uint64_t y) { return (x << y) | (x >> (64-y)); }
 #endif
+
+#ifdef __clang__
+   #define VECTORIZE_HINT _Pragma("clang loop vectorize(enable) interleave(enable)")
+#else
+   #define VECTORIZE_HINT
+#endif
+
 /* This implementation is an amalgam from tiny_sha3 (https://github.com/mjosaarinen/tiny_sha3) and
  * SHA3UIF (https://github.com/brainhub/SHA3UIF) and documentation.
  * This implementation is quite slow comparative to openssl 1.1.1. Once we require a version greater
@@ -72,28 +79,23 @@ struct sha3_impl {
 			}
 		}
 
-		#pragma clang loop vectorize(enable) interleave(enable)
-		for (std::size_t i = 0; i < number_of_rounds; i++)
+		VECTORIZE_HINT for (std::size_t i = 0; i < number_of_rounds; i++)
 		{
 			// theta
-			#pragma clang loop vectorize(enable) interleave(enable)
-			for (std::size_t j = 0; j < 5; j++)
+			VECTORIZE_HINT for (std::size_t j = 0; j < 5; j++)
 				bc[j] = words[j] ^ words[j + 5] ^ words[j + 10] ^ words[j + 15] ^ words[j + 20];
 
 			uint64_t t;
-			#pragma clang loop vectorize(enable) interleave(enable)
-			for (std::size_t j = 0; j < 5; j++)
+			VECTORIZE_HINT for (std::size_t j = 0; j < 5; j++)
 			{
 				t = bc[(j + 4) % 5] ^ rotl64(bc[(j + 1) % 5], 1);
-				#pragma clang loop vectorize(enable) interleave(enable)
-				for (std::size_t k = 0; k < number_of_words; k += 5)
+				VECTORIZE_HINT for (std::size_t k = 0; k < number_of_words; k += 5)
 					words[k + j] ^= t;
 			}
 
 			// rho pi
 			t = words[1];
-			#pragma clang loop vectorize(enable) interleave(enable)
-			for (std::size_t j = 0; j < number_of_rounds; j++)
+			VECTORIZE_HINT for (std::size_t j = 0; j < number_of_rounds; j++)
 			{
 				uint8_t p = pi_lanes[j];
 				bc[0] = words[p];
@@ -102,14 +104,11 @@ struct sha3_impl {
 			}
 
 			// chi
-			#pragma clang loop vectorize(enable) interleave(enable)
-			for (std::size_t j = 0; j < number_of_words; j += 5)
+			VECTORIZE_HINT for (std::size_t j = 0; j < number_of_words; j += 5)
 			{
-				#pragma clang loop vectorize(enable) interleave(enable)
-				for (std::size_t k = 0; k < 5; k++)
+				VECTORIZE_HINT for (std::size_t k = 0; k < 5; k++)
 					bc[k] = words[k + j];
-				#pragma clang loop vectorize(enable) interleave(enable)
-				for (std::size_t k = 0; k < 5; k++)
+				VECTORIZE_HINT for (std::size_t k = 0; k < 5; k++)
 					words[k + j] ^= (~bc[(k + 1) % 5]) & bc[(k + 2) % 5];
 			}
 
@@ -281,8 +280,8 @@ void from_variant(const variant &v, sha3 &bi)
 {
 	const auto &ve = v.as<std::vector<char>>();
 	if (ve.size())
-		memcpy(&bi, ve.data(), fc::min<size_t>(ve.size(), sizeof(bi)));
+		memcpy(bi.data(), ve.data(), fc::min<size_t>(ve.size(), sizeof(bi)));
 	else
-		memset(&bi, char(0), sizeof(bi));
+		memset(bi.data(), char(0), sizeof(bi));
 }
 } // namespace fc
