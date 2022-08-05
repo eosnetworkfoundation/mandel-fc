@@ -282,17 +282,20 @@ BOOST_AUTO_TEST_CASE(modexp_benchmarking) try {
 
     // The empirical results show that the average time stays well below 5 ms if the exponent bit size does not exceed the
     // modulus/base bit size and the product of the exponent bit size and the 
-    // (modulus/base bit size)^1.6 does not exceed 500,000,000.
+    // (modulus/base bit size)^1.6 does not exceed 550,000,000.
     // Another way of satisfying that constraint is to require that the 5*ceil(log2(exponent bit size)) + 8*ceil(log2(modulus bit size)) 
-    // be less than or equal to 5*floor(log2(500000000)) = 140.
+    // be less than or equal to 5*floor(log2(500000000)) = 145.
     // Or equivalently, assuming the bit sizes are multiples of 8:
-    // 5*ceil(log2(exponent bit size/8)) + 8*ceil(log2(modulus bit size/8)) <= 101.
+    // 5*ceil(log2(exponent bit size/8)) + 8*ceil(log2(modulus bit size/8)) <= 106.
 
     // Take, as an example, a 8192-bit modulus/base and a 128-bit exponent (which on average took 1.29 ms).
-    // 5*ceil(log2(128)) + 8*ceil(log2(8192)) = 5*7 + 8*13 = 139 which is less than the limit of 140.
+    // 5*ceil(log2(128)) + 8*ceil(log2(8192)) = 5*7 + 8*13 = 139 which is less than the limit of 145.
     // 
+    // Or, as an other example, a 2048-bit modulus/base and a 2048-bit exponent (which on average took 1.89 ms).
+    // 5*ceil(log2(2048)) + 8*ceil(log2(2048)) = 5*11 + 8*11 = 143 which is less than the limit of 145.
+    //
     // On the other hand, consider a 4096-bit modulus/base and a 1024-bit exponent (which on average took 3.69 ms).
-    // 5*ceil(log2(1024)) + 8*ceil(log2(4096)) = 5*10 + 8*12 = 146 which is greater than the limit of 140.
+    // 5*ceil(log2(1024)) + 8*ceil(log2(4096)) = 5*10 + 8*12 = 146 which is greater than the limit of 145.
 
 } FC_LOG_AND_RETHROW();
 
