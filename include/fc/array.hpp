@@ -113,10 +113,10 @@ namespace fc {
     std::vector<char> ve = v.as< std::vector<char> >();
     if( ve.size() )
     {
-        memcpy(&bi, ve.data(), fc::min<size_t>(ve.size(),sizeof(bi)) );
+        memcpy(bi.begin(), ve.data(), fc::min<size_t>(ve.size(),sizeof(bi)) );
     }
     else
-        memset( &bi, char(0), sizeof(bi) );
+        memset( bi.begin(), char(0), sizeof(bi) );
   }
 
 
